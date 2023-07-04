@@ -1,6 +1,6 @@
 package searchengine.model;
 
-import org.aspectj.weaver.ast.Var;
+import searchengine.parsers.StatusType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

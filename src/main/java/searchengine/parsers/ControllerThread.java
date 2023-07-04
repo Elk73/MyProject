@@ -1,4 +1,4 @@
-package searchengine.controllers;
+package searchengine.parsers;
 
 public record ControllerThread() {
     private static boolean isRun;
