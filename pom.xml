@@ -46,7 +46,6 @@
             <artifactId>jsoup</artifactId>
             <version>1.16.1</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.lucene.morphology</groupId>
             <artifactId>morph</artifactId>
@@ -72,7 +71,6 @@
             <artifactId>russian</artifactId>
             <version>1.5</version>
         </dependency>
-
     </dependencies>
     <repositories>
         <repository>
