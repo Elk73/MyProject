@@ -71,6 +71,7 @@
             <artifactId>russian</artifactId>
             <version>1.5</version>
         </dependency>
+
     </dependencies>
     <repositories>
         <repository>

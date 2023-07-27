@@ -3,6 +3,7 @@ package searchengine.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import searchengine.config.Site;
@@ -54,5 +55,10 @@ public class ApiController {
         }
         ConditionStopIndexing.setIsStop(true);
         return "'result': true";
+    }
+    @PostMapping("/indexPage")
+    public String addUrl(String url){
+       indexing.indexingPage(url);
+       return "'result': true";
     }
 }

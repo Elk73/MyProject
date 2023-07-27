@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
+import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.SiteModel;
-import searchengine.parsers.ConditionStopIndexing;
-import searchengine.parsers.ControllerThread;
-import searchengine.parsers.LinkExecutor;
-import searchengine.parsers.StatusType;
+import searchengine.parsers.*;
+import searchengine.repository.IndexRepository;
+import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import java.time.LocalDateTime;
@@ -19,22 +19,27 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 @Service
-
 public class Indexing {
     @Autowired
     private SiteModelRepository siteModelRepository;
     @Autowired
     private PageRepository pageRepository;
+    @Autowired
+    private LemmaRepository lemmaRepository;
+    @Autowired
+    private IndexRepository indexRepository;
 
     private final SitesList sites;
+    private final LemmaFinder lemmaFinder;
+
     public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
 
     public Site site;
-
-    public Indexing(SitesList sites) {
+    public Indexing(SitesList sites, LemmaFinder lemmaFinder) {
         this.sites = sites;
+        this.lemmaFinder = lemmaFinder;
     }
     public  String startIndexing(){
         ConditionStopIndexing.setIsStop(false);
@@ -87,6 +92,55 @@ public class Indexing {
             ControllerThread.setIsRun(false);
         }
         return "'result': true\n"+"Пройдено сайтов- "+sites.getSites().size();
+    }
+    public String indexingPage(String url){
+        siteModelRepository.deleteAll();
+        pageRepository.deleteAll();
+            LinkExecutor.outHTML.clear();
+            int numThreads = 5;
+            LinkExecutor linkExecutor = new LinkExecutor(url, url);
+            String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
+            System.out.println("Карта Сайта -" + siteMap + "Размер списка siteMap... " + siteMap.length());
+            Page page = new Page();
+            SiteModel siteModel = new SiteModel();
+            listSideMap.clear();
+            getFinalSiteMap(siteMap);
+            comment="no false";
+            String name = url.substring(12);
+        siteModel.setUrl(url);
+        siteModel.setName(name);
+        siteModel.setStatus(StatusType.INDEXED);
+        siteModel.setLastError(comment);
+        siteModel.setStatusTime(LocalDateTime.now());
+        siteModelRepository.save(siteModel);
+                page.setId(siteModel.getId());
+                if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
+                    siteModel.setStatus(StatusType.FAILED);
+                    siteModel.setLastError("Ошибка  индексации");
+                    siteModelRepository.save(siteModel);
+                    comment="Парсинг HTML некорректный";
+                    savePageRepository(listSideMap,siteModel,500,page,comment);
+                }
+                else {
+                    for (int j = 0; j < listSideMap.size(); j++) {
+                        page.setSiteId(siteModel.getId());
+                        page.setCode(200);
+                        page.setPath((String) listSideMap.get(j));
+                        page.setContent((String) LinkExecutor.outHTML.get(j));
+                        pageRepository.save(page);
+                    }
+                }
+                lemmaRepository.deleteAll();
+                Lemma lemma=new Lemma();
+                int frequency=0;
+                for (int y=0;y< pageRepository.count();y++){
+                    lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
+
+                    lemma.setLemma(lemmaFinder.lemmas.toString());
+                    lemma.setFrequency(frequency+1);
+                    lemmaRepository.save(lemma);
+                }
+        return "'result': true";
     }
     public static String getFinalSiteMap(String text) {
         String encoding;
