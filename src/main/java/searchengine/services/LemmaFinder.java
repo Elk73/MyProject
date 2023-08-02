@@ -3,22 +3,31 @@ package searchengine.services;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
-
+@Component
 public class LemmaFinder {
-    public final LuceneMorphology luceneMorphology;
+    public static LuceneMorphology luceneMorphology;
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ","ЧАСТ"};
     public HashMap<String, Integer> lemmas = new HashMap<>();
+    static {
+        try {
+            luceneMorphology = new RussianLuceneMorphology();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public static LemmaFinder getInstance() throws IOException {
         LuceneMorphology morphology= new RussianLuceneMorphology();
-        return new LemmaFinder(morphology);
+        return new LemmaFinder();
     }
-    private LemmaFinder(LuceneMorphology luceneMorphology) {
-        this.luceneMorphology = luceneMorphology;
-    }
+//    private LemmaFinder(LuceneMorphology luceneMorphology) {
+//        this.luceneMorphology = luceneMorphology;
+//    }
     /**
      * Метод разделяет текст на слова, находит все леммы и считает их количество.
      *

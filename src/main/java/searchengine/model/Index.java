@@ -2,7 +2,7 @@ package searchengine.model;
 
 import javax.persistence.*;
 
-@Table(name="index",schema = "search_engine")
+@Table(name="`index`",schema = "search_engine")
 @Entity
 public class Index {
     @Id

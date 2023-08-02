@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
+import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.SiteModel;
@@ -35,7 +36,7 @@ public class Indexing {
     public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
-
+    public static int frequency=0;
     public Site site;
     public Indexing(SitesList sites, LemmaFinder lemmaFinder) {
         this.sites = sites;
@@ -102,6 +103,8 @@ public class Indexing {
             String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
             System.out.println("Карта Сайта -" + siteMap + "Размер списка siteMap... " + siteMap.length());
             Page page = new Page();
+            Lemma lemma=new Lemma();
+            Index index=new Index();
             SiteModel siteModel = new SiteModel();
             listSideMap.clear();
             getFinalSiteMap(siteMap);
@@ -128,17 +131,22 @@ public class Indexing {
                         page.setPath((String) listSideMap.get(j));
                         page.setContent((String) LinkExecutor.outHTML.get(j));
                         pageRepository.save(page);
-                    }
-                }
-                lemmaRepository.deleteAll();
-                Lemma lemma=new Lemma();
-                int frequency=0;
-                for (int y=0;y< pageRepository.count();y++){
-                    lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
+                        lemmaRepository.deleteAll();
+                        indexRepository.deleteAll();
+                        lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
+                        for (String key : lemmaFinder.lemmas.keySet()) {
 
-                    lemma.setLemma(lemmaFinder.lemmas.toString());
-                    lemma.setFrequency(frequency+1);
-                    lemmaRepository.save(lemma);
+                               lemma.setLemma(String.valueOf(key));
+                               lemma.setFrequency(frequency +lemmaFinder.lemmas.get(key) );
+                               lemma.setSiteId(page.getSiteId());
+                               lemmaRepository.save(lemma);
+                               index.setPageId(page.getId());
+                               index.setLemmaId(lemma.getId());
+                               index.setRank(lemma.getFrequency());
+                               indexRepository.save(index);
+
+                        }
+                    }
                 }
         return "'result': true";
     }
