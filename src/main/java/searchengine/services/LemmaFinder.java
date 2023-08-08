@@ -22,12 +22,9 @@ public class LemmaFinder {
 
 
     public static LemmaFinder getInstance() throws IOException {
-        LuceneMorphology morphology= new RussianLuceneMorphology();
+ //       LuceneMorphology morphology= new RussianLuceneMorphology();
         return new LemmaFinder();
     }
-//    private LemmaFinder(LuceneMorphology luceneMorphology) {
-//        this.luceneMorphology = luceneMorphology;
-//    }
     /**
      * Метод разделяет текст на слова, находит все леммы и считает их количество.
      *

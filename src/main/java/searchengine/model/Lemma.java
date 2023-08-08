@@ -6,7 +6,8 @@ import javax.persistence.*;
 @Entity
 public class Lemma {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column  (name="site_id",nullable = false)
     private  int siteId;

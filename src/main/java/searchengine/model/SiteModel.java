@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 public class SiteModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int id;
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false,columnDefinition = "ENUM('INDEXING', 'INDEXED','FAILED')")
