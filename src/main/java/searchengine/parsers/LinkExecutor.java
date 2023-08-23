@@ -1,9 +1,13 @@
 package searchengine.parsers;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.RecursiveTask;
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import org.apache.commons.io.FilenameUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -56,8 +60,10 @@ public class LinkExecutor extends RecursiveTask<String> {
 
             for (Element el : elements) {
                 String attr = el.attr("abs:href");
-                if (!attr.isEmpty() && attr.startsWith(startUrl) && !allLinks.contains(attr) && !attr
-                        .contains("#")&&!attr.equals(startUrl)) {
+
+                if (!attr.isEmpty() && attr.startsWith(startUrl) && !allLinks.contains(attr) && !attr.contains("#")
+                        &&!attr.equals(startUrl)&& !FilenameUtils.getExtension(attr).equals("pdf")
+                        && !FilenameUtils.getExtension(attr).equals("png")&& !FilenameUtils.getExtension(attr).equals("txt")) {
                     String regexHTML="[^0-9<>()_=]+";
                     if (el.html().matches(regexHTML)) {
                         outHTML.add(el.outerHtml());

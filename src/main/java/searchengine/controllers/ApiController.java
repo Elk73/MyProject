@@ -15,10 +15,7 @@ import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
 import searchengine.services.StatisticsService;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import searchengine.services.StatisticsServiceImpl;
 
 @RestController
 @RequestMapping("/api")
@@ -34,7 +31,7 @@ public class ApiController {
     private final Indexing indexing;
 
     public Site site;
-    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing) {
+    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing, StatisticsServiceImpl statisticsServiceImpl) {
         this.statisticsService = statisticsService;
         this.sites = sites;
         this.indexing = indexing;
@@ -58,6 +55,10 @@ public class ApiController {
     }
     @PostMapping("/indexPage")
     public String addUrl(String url){
+        if (Indexing.isValidURL(url)==false) {
+            return  "'result': false 'error': Данная страница находится за пределами сайтов, \n" +
+                    "            указанных в конфигурационном файле" ;
+        }
        indexing.indexingPage(url);
        return "'result': true";
     }
