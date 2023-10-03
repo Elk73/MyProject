@@ -17,6 +17,8 @@ import searchengine.services.Indexing;
 import searchengine.services.StatisticsService;
 import searchengine.services.StatisticsServiceImpl;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -62,4 +64,16 @@ public class ApiController {
        indexing.indexingPage(url);
        return "'result': true";
     }
+    @GetMapping("/search")
+    public String search(String query,String site,int offset,int limit) throws IOException {
+        if ( limit==0) {
+            limit=20;
+        }
+        if ( query==null||site==null) {
+            return "'result': false,\n" + "Задан пустой поисковый запрос";
+        }
+        indexing.getSearch(query,site,offset,limit);
+        return "'result': true"+"\n  Query- "+query+"\n  Site- "+site+"\n  limit- "+limit;
+    }
+
 }
