@@ -284,21 +284,61 @@ public class Indexing {
             }
 
         }
-        //****создание и заполнение objectSearch пока без Relevance(пока RANK) и Snippet
+        //****создание и заполнение objectSearch
         Iterable<Index> byLemmaGetId = indexRepository.findAll();
         Iterable<Page> pagesFromRep=pageRepository.findAll();
         List<Page> pages = new ArrayList<>();
         for(Page pageFromRep:pagesFromRep) {
             pages.add( pageFromRep);
         }
+        //Запрос Query разделяем на слова и записываем в список
+        Map<Integer, String> substringIndices = new TreeMap<>();
+        List<String> substrings = new ArrayList<>();
+        String[] words = query.split("\\s+");
+        substrings.addAll(List.of(words));
+        // Перебираем Index и заполняем objectSearch пока без Snippet
         for (Index byLemmaId :byLemmaGetId) {
             ObjectSearch objectSearch=new ObjectSearch();
-                    objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-                    objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
-//                    objectSearch.setSnippet(URLReader(pageRepository.findById(byLemmaId.getPageId()).get().getPath()),"книга");
-                    objectSearch.setSnippet("snippet");
-                    objectSearch.setRelevance(byLemmaId.getRank());
-                    objectSearchRepository.save(objectSearch);
+//            List<Index>indexList  = new ArrayList<>();
+//            for(Index byLemma:byLemmaGetId) {
+//                indexList.add(byLemma);
+//            }
+//            Optional<Index> lemmaMinRank=indexList.stream().min(Comparator.comparing(r -> r.getRank()));
+//            int idMinRank =lemmaMinRank.get().getPageId();
+//            Document doc = Jsoup.connect(site+pageRepository.findById(idMinRank).get().getPath()).get();
+            Document doc = Jsoup.connect(site+pageRepository.findById(byLemmaId.getPageId()).get().getPath()).get();
+            String text=htmlCleaner(String.valueOf(doc.body())).toLowerCase();
+            List<String> lemmaText=List.of(text.split("\\s+"));
+            for (String substring : substrings) {
+                for (String lemmaT : lemmaText){
+                    if (lemmaFinder.collectLemmas(substring).equals(lemmaFinder.collectLemmas(lemmaT))) {
+                        int index = text.indexOf(substring);
+                        if (index != -1 && !substringIndices.containsValue(substring)) {
+                            substringIndices.put(index, substring);
+                        }
+                    }
+                }
+            }
+            for (Integer index : substringIndices.keySet()) {
+                System.out.println(index);
+            }
+            for (Integer index : substringIndices.keySet()) {
+                int start=index;
+                int end=index+150;
+                 String cutText=text.substring(start,end);
+                System.out.println("cutText - "+cutText+"\n text -"+text+"\n pageRep -"+pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+                objectSearch.setSnippet(cutText);
+                break;
+            }
+
+//                    objectSearch.setUri(pageRepository.findById(idMinRank).get().getPath());
+//                    objectSearch.setTitle(htmlCleaner(pageRepository.findById(idMinRank).get().getContent()));
+//                    objectSearch.setRelevance(indexRepository.findById().getRank());
+//                    objectSearchRepository.save(objectSearch);
+        objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+        objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
+        objectSearch.setRelevance(byLemmaId.getRank());
+        objectSearchRepository.save(objectSearch);
         }
         //****создание копии списка objectSearchRepository
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
@@ -317,7 +357,7 @@ public class Indexing {
                         if ( objectOne.equals(objectTwo)) {
                             relevance += objectSearches.get(j).getRelevance();
                             objectSearches.get(j).setUri("");
-                            System.out.println("objectTwo & objectOne : -" + objectSearches.get(j).getUri() + " -   " + objectSearches.get(i).getUri());
+//                            System.out.println("objectTwo & objectOne : -" + objectSearches.get(j).getUri() + " -   " + objectSearches.get(i).getUri());
                         }
                     }
             }
@@ -355,11 +395,42 @@ public class Indexing {
         for (ObjectSearch objectSearch:objectSearches){
         System.out.println("sortedList.getRelevance(): " + objectSearch.getRelevance());
         }
-        Document doc = Jsoup.connect("https://www.playback.ru/catalog/665.html").get();
-        System.out.println(" doc.getElementsByAttribute(b)- " +htmlCleaner(String.valueOf(doc.body())));
-        Document doc1 = Jsoup.connect("https://www.playback.ru/catalog/1308.html").get();
-        System.out.println(" doc.getElementsByAttribute(b)- " +htmlCleaner(String.valueOf(doc1.body())));
-        System.out.println(" URLReader(URL url): " + URLReader(new URL("https://www.playback.ru/catalog/1308.html")));
+        //Запись в objectSearchRepository итогового objectSearches
+        objectSearchRepository.deleteAll();
+        for (ObjectSearch objectSearchList:objectSearches){
+            ObjectSearch objectSearch=new ObjectSearch();
+            objectSearch.setUri(objectSearchList.getUri());
+            objectSearch.setTitle(objectSearchList.getTitle());
+            objectSearch.setSnippet(objectSearchList.getSnippet());
+            objectSearch.setRelevance(objectSearchList.getRelevance());
+            objectSearchRepository.save(objectSearch);
+        }
+
+//        Document doc = Jsoup.connect("https://www.playback.ru/catalog/1626.html").get();
+//        System.out.println(" doc.catalog/1626.html- " +htmlCleaner(String.valueOf(doc.body())));
+//        Document doc1 = Jsoup.connect("https://www.playback.ru/catalog/1308.html").get();
+//        System.out.println(" doc.catalog/1308.html- " +htmlCleaner(String.valueOf(doc1.body())));
+//        String text=htmlCleaner(String.valueOf(doc.body())).toLowerCase();
+//        Map<Integer, String> substringIndices = new TreeMap<>();
+//        List<String> substrings = new ArrayList<>();
+//        String[] words = query.split("\\s+");
+//        substrings.addAll(List.of(words));
+//        for (String substring : substrings) {
+//            int index = text.indexOf(substring);
+//            System.out.println(index);
+//            if (index != -1) {
+//                substringIndices.put(index, substring);
+//            }
+//        }
+//        for (Integer index : substringIndices.keySet()) {
+//            int start=index;
+//            int end=index+150;
+//            String cutText=text.substring(start,end);
+//            System.out.println("cutText - "+cutText);
+//
+//            System.out.println(substringIndices.get(index));
+//        }
+//        System.out.println(" URLReader(URL url): " + URLReader(new URL("https://www.playback.ru/catalog/1308.html")));
         return "'result': true";
     }
     public static String getFinalSiteMap(String text) {
