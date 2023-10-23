@@ -44,6 +44,7 @@ public class Indexing {
     public static int frequency=0;
     public Site site;
     public static Map<String,Integer> removeKeys=new HashMap<>();
+    static String snippetText="";
     public Indexing(SitesList sites, LemmaFinder lemmaFinder,CustomComparator customComparator) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
@@ -217,11 +218,10 @@ public class Indexing {
                 System.out.println("collectLemmas : "+collectLemmas);
                 System.out.println("sortedMap.keySet() & sortedMap.values() : "+sortedMap.keySet() +"    -"+sortedMap.values());
                 for ( String key : sortedMap.keySet()) {
-                    System.out.println("sortedMap.get(key) : "+sortedMap.get(key));
                     System.out.println("sortedMap-key : "+key);
                 }
                 for (String key : collectLemmas.keySet()) {
-                    if (collectLemmas.get(key)>8) {
+                    if (collectLemmas.get(key)>12) {
                         removeKeys.put(key,collectLemmas.get(key));
                         System.out.println("key: "+key);
                         System.out.println("collectLemmas.get(key): "+collectLemmas.get(key));
@@ -293,52 +293,82 @@ public class Indexing {
         }
         //Запрос Query разделяем на слова и записываем в список
         Map<Integer, String> substringIndices = new TreeMap<>();
-        List<String> substrings = new ArrayList<>();
+        LinkedList<String> substrings = new LinkedList<>();
         String[] words = query.split("\\s+");
         substrings.addAll(List.of(words));
         // Перебираем Index и заполняем objectSearch пока без Snippet
         for (Index byLemmaId :byLemmaGetId) {
             ObjectSearch objectSearch=new ObjectSearch();
-//            List<Index>indexList  = new ArrayList<>();
-//            for(Index byLemma:byLemmaGetId) {
-//                indexList.add(byLemma);
-//            }
-//            Optional<Index> lemmaMinRank=indexList.stream().min(Comparator.comparing(r -> r.getRank()));
-//            int idMinRank =lemmaMinRank.get().getPageId();
-//            Document doc = Jsoup.connect(site+pageRepository.findById(idMinRank).get().getPath()).get();
             Document doc = Jsoup.connect(site+pageRepository.findById(byLemmaId.getPageId()).get().getPath()).get();
             String text=htmlCleaner(String.valueOf(doc.body())).toLowerCase();
-            List<String> lemmaText=List.of(text.split("\\s+"));
-            for (String substring : substrings) {
-                for (String lemmaT : lemmaText){
-                    if (lemmaFinder.collectLemmas(substring).equals(lemmaFinder.collectLemmas(lemmaT))) {
+            LinkedList<String> textLemmas=new LinkedList<>();
+            lemmaFinder.lemmas.clear();
+            textLemmas.addAll(lemmaFinder.collectLemmas(text).keySet());
+            LinkedList<String> substringLemmas=new LinkedList<>();
+            lemmaFinder.lemmas.clear();
+            substringLemmas.addAll(lemmaFinder.collectLemmas(Arrays.toString(words)).keySet());
+
+            for (String substring : substringLemmas) {System.out.println("substringLemmas- "+substring);}
+            for (String lemmaT : textLemmas){System.out.println("textLemmas- "+lemmaT);}
+
+            for (String substring : substringLemmas) {
+                for (String lemmaT : textLemmas){
+//                    if (lemmaFinder.collectLemmas(substring).equals(lemmaFinder.collectLemmas(lemmaT))) {
+                    if (substring.equals(lemmaT)) {
                         int index = text.indexOf(substring);
-                        if (index != -1 && !substringIndices.containsValue(substring)) {
+                        if (index != -1 && !substringIndices.containsKey(index)) {
                             substringIndices.put(index, substring);
                         }
                     }
                 }
             }
-            for (Integer index : substringIndices.keySet()) {
-                System.out.println(index);
-            }
-            for (Integer index : substringIndices.keySet()) {
-                int start=index;
-                int end=index+150;
-                 String cutText=text.substring(start,end);
-                System.out.println("cutText - "+cutText+"\n text -"+text+"\n pageRep -"+pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-                objectSearch.setSnippet(cutText);
-                break;
-            }
+                for (Integer index : substringIndices.keySet()) {
+                    System.out.println("index- "+index+"   substring- "+substringIndices.get(index));
+                }
+                //Вырезаем подстроку и записываем в snippet
+                Optional<Integer> max=substringIndices.keySet().stream().max(Comparator.comparing(i->i.intValue()));
+                for (Integer index : substringIndices.keySet()) {
+                    int start = index - 100;
+                    int end = index + 90;
+                    if (start < index){
+                        start=index-1;
+                    } else if (end>max.get()) {
+                        end=index+1;
+                    }
+                    String cutText = text.substring(start, end);
+                    String[] cutTextMassive=cutText.split("\\s+");
+                    String snippetText="";
+                    for (int i=1;i<cutTextMassive.length-1;i++){
+                        snippetText=snippetText+" "+cutTextMassive[i];
+                    }
+                    System.out.println("cutText - " + snippetText + "\n text -" + text + "\n pageRep -"
+                            + pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+                    objectSearch.setSnippet(snippetText);
+                    break;
+                }
 
-//                    objectSearch.setUri(pageRepository.findById(idMinRank).get().getPath());
-//                    objectSearch.setTitle(htmlCleaner(pageRepository.findById(idMinRank).get().getContent()));
-//                    objectSearch.setRelevance(indexRepository.findById().getRank());
-//                    objectSearchRepository.save(objectSearch);
-        objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-        objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
-        objectSearch.setRelevance(byLemmaId.getRank());
-        objectSearchRepository.save(objectSearch);
+//            for (Integer index : substringIndices.keySet()) {
+//                int start = index - 100;
+//                int end = index + 90;
+//                if (start < index){
+//                    start=index-1;
+//                } else if (end>substringIndices.size()) {
+//                    end=index+1;
+//                }
+//                String cutText = text.substring(start, end);
+//                String[] cutTextMassive=cutText.split("\\s+");
+//                for (int i=1;i<cutTextMassive.length-1;i++){
+//                    snippetText=snippetText+" "+cutTextMassive[i];
+//                }
+//                System.out.println("cutText - " + snippetText + "\n text -" + text + "\n pageRep -"
+//                        + pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+//            }
+//                objectSearch.setSnippet(snippetText);
+
+                objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+                objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
+                objectSearch.setRelevance(byLemmaId.getRank());
+                objectSearchRepository.save(objectSearch);
         }
         //****создание копии списка objectSearchRepository
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
@@ -357,7 +387,6 @@ public class Indexing {
                         if ( objectOne.equals(objectTwo)) {
                             relevance += objectSearches.get(j).getRelevance();
                             objectSearches.get(j).setUri("");
-//                            System.out.println("objectTwo & objectOne : -" + objectSearches.get(j).getUri() + " -   " + objectSearches.get(i).getUri());
                         }
                     }
             }
@@ -371,15 +400,16 @@ public class Indexing {
         for (int y=0;y<objectSearches.size();y++) {
             if (objectSearches.get(y).getUri().equals("")){
                 objectSearches.remove(y);
-
             }
         }
         //****поиск МАХ среди абсолютных Relevance, расчет и запись относительной Relevance
         Optional<ObjectSearch> max=objectSearches.stream().max(Comparator.comparing(o -> o.getRelevance()));
-            double maxRelevance=max.get().getRelevance();
+        if (max.isPresent()) {
+            double maxRelevance = max.get().getRelevance();
             for (ObjectSearch objectSearch : objectSearches) {
-                objectSearch.setRelevance(objectSearch.getRelevance()/maxRelevance);
+                objectSearch.setRelevance(objectSearch.getRelevance() / maxRelevance);
             }
+        }
             //****сортировка списка по возрастанию Relevance
         List<ObjectSearch> sortedList = objectSearches.stream()
                 .sorted((o1, o2) -> {
@@ -397,40 +427,23 @@ public class Indexing {
         }
         //Запись в objectSearchRepository итогового objectSearches
         objectSearchRepository.deleteAll();
-        for (ObjectSearch objectSearchList:objectSearches){
-            ObjectSearch objectSearch=new ObjectSearch();
-            objectSearch.setUri(objectSearchList.getUri());
-            objectSearch.setTitle(objectSearchList.getTitle());
-            objectSearch.setSnippet(objectSearchList.getSnippet());
-            objectSearch.setRelevance(objectSearchList.getRelevance());
-            objectSearchRepository.save(objectSearch);
+        if (!objectSearches.isEmpty()) {
+            for (ObjectSearch objectSearchList : objectSearches) {
+                ObjectSearch objectSearch = new ObjectSearch();
+                objectSearch.setUri(objectSearchList.getUri());
+                objectSearch.setTitle(objectSearchList.getTitle());
+                objectSearch.setSnippet(objectSearchList.getSnippet());
+                objectSearch.setRelevance(objectSearchList.getRelevance());
+                objectSearchRepository.save(objectSearch);
+            }
         }
-
-//        Document doc = Jsoup.connect("https://www.playback.ru/catalog/1626.html").get();
-//        System.out.println(" doc.catalog/1626.html- " +htmlCleaner(String.valueOf(doc.body())));
-//        Document doc1 = Jsoup.connect("https://www.playback.ru/catalog/1308.html").get();
-//        System.out.println(" doc.catalog/1308.html- " +htmlCleaner(String.valueOf(doc1.body())));
-//        String text=htmlCleaner(String.valueOf(doc.body())).toLowerCase();
-//        Map<Integer, String> substringIndices = new TreeMap<>();
-//        List<String> substrings = new ArrayList<>();
-//        String[] words = query.split("\\s+");
-//        substrings.addAll(List.of(words));
-//        for (String substring : substrings) {
-//            int index = text.indexOf(substring);
-//            System.out.println(index);
-//            if (index != -1) {
-//                substringIndices.put(index, substring);
-//            }
-//        }
-//        for (Integer index : substringIndices.keySet()) {
-//            int start=index;
-//            int end=index+150;
-//            String cutText=text.substring(start,end);
-//            System.out.println("cutText - "+cutText);
-//
-//            System.out.println(substringIndices.get(index));
-//        }
-//        System.out.println(" URLReader(URL url): " + URLReader(new URL("https://www.playback.ru/catalog/1308.html")));
+        else {
+               ObjectSearch objectSearchFalse=new ObjectSearch();
+               objectSearchFalse.setUri(site);
+               objectSearchFalse.setTitle(name);
+               objectSearchFalse.setSnippet("По запросу ничего не найдено");
+               objectSearchFalse.setRelevance(0);
+               objectSearchRepository.save(objectSearchFalse);}
         return "'result': true";
     }
     public static String getFinalSiteMap(String text) {
@@ -501,6 +514,27 @@ public class Indexing {
     }
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();
+    }
+    public String toString() {
+        ArrayList<String> result = new ArrayList<>();
+        Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
+        Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
+        for(SiteModel siteModel:siteModelRep) {
+            for (ObjectSearch objectSearch : objectSearchesRep) {
+                result.add(
+                        "\n'count': " + siteModelRepository.count() + "," +
+                        "\n    'data':[ " +
+                        "\n            {" +
+                        "\n            'site': " + siteModel.getUrl() + "," +
+                        "\n            'siteName': " + siteModel.getName() + "," +
+                        "\n            'uri': " + objectSearch.getUri()+
+                        "            'title' :" + objectSearch.getTitle() + "," +
+                        "\n            'snippet' :" + objectSearch.getSnippet() + "," +
+                        "\n            'relevance' :" + objectSearch.getRelevance() +
+                        "\n            }");
+            }
+        }
+        return "'result': true\n" +result;
     }
 
 }
