@@ -25,7 +25,6 @@ public class CustomComparator {
             }
 
         };
-
         // SortedMap created using the comparator
         Map<K, V> sorted = new TreeMap<K, V>(valueComparator);
 

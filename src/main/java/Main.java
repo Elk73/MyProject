@@ -1,10 +1,8 @@
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
-import searchengine.parsers.LinkExecutor;
 import searchengine.services.LemmaFinder;
 import org.apache.commons.io.FilenameUtils;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {

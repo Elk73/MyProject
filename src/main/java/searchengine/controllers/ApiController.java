@@ -16,6 +16,7 @@ import searchengine.repository.ObjectSearchRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
+import searchengine.services.Searching;
 import searchengine.services.StatisticsService;
 import searchengine.services.StatisticsServiceImpl;
 
@@ -35,12 +36,13 @@ public class ApiController {
     private final SitesList sites;
     public String url;
     private final Indexing indexing;
-
+    private final Searching searching;
     public Site site;
-    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing, StatisticsServiceImpl statisticsServiceImpl) {
+    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing, StatisticsServiceImpl statisticsServiceImpl,Searching searching) {
         this.statisticsService = statisticsService;
         this.sites = sites;
         this.indexing = indexing;
+        this.searching = searching;
     }
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
@@ -49,12 +51,12 @@ public class ApiController {
     @GetMapping("/startIndexing")
     public String startIndexing(){
         indexing.startIndexing();
-        return "'result': true\n"+"Пройдено сайтов- "+sites.getSites().size();
+        return "'result': true\n"+"Пройдено сайтов Count- "+sites.getSites().size();
     }
     @GetMapping("/stopIndexing")
     public String stopIndexing(){
         if ( ControllerThread.isIsRun()==false) {
-            return "'result': false,\n" + "\t'error': \"Индексация не запущена\"\n" ;
+            return "'result': false,\n" + "\t'error': 400 Bad Request \nИндексация не была запущена\n" ;
         }
         ConditionStopIndexing.setIsStop(true);
         return "'result': true";
@@ -62,7 +64,7 @@ public class ApiController {
     @PostMapping("/indexPage")
     public String addUrl(String url){
         if (Indexing.isValidURL(url)==false) {
-            return  "'result': false 'error': Данная страница находится за пределами сайтов, \n" +
+            return  "'result': false 'error':417 Expectation Failed \nДанная страница находится за пределами сайтов, \n" +
                     "            указанных в конфигурационном файле" ;
         }
        indexing.indexingPage(url);
@@ -70,15 +72,16 @@ public class ApiController {
     }
     @GetMapping("/search")
     public String search(String query,String site,int offset,int limit) throws IOException {
-        if ( limit==0) {
-            limit=20;
+        if ( query==null) {
+            return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
         }
-        if ( query==null||site==null) {
-            return "'result': false,\n" + "Задан пустой поисковый запрос";
+        if (site==null){
+//            return indexing.getSearchSiteMap(query);
+            return searching.getSearchSiteMap(query);
         }
-        indexing.getSearch(query,site,offset,limit);
-        return indexing.toString();
-
+ //       indexing.getSearch(query,site);
+        searching.getSearch(query,site);
+         return indexing.toString(offset,limit,1);
     }
 
 }
