@@ -9,6 +9,9 @@ import searchengine.config.SitesList;
 import searchengine.model.*;
 import searchengine.parsers.*;
 import searchengine.repository.*;
+import searchengine.suportServises.CustomComparator;
+import searchengine.suportServises.LemmaFinder;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -47,7 +50,7 @@ public class Searching {
     }
     public String getSearchSiteMap(String query) throws IOException {
         ArrayList<String> result = new ArrayList<>();
-        result.add( "\n,jg'count': " +sites.getSites().size());
+        result.add( "\n 'count': " +sites.getSites().size());
         for (int i = 0; i < sites.getSites().size(); i++) {
             site = sites.getSites().get(i);
             url = site.getUrl();
@@ -55,7 +58,6 @@ public class Searching {
             result.add(indexing.toString(0,20,i+1));
         }
         return result.toString();
-
     }
     public String getSearch(String query,String site) throws IOException {
         siteModelRepository.deleteAll();
@@ -109,7 +111,7 @@ public class Searching {
                 for (String removeKey : removeKeys.keySet()) {
                     collectLemmas.remove(removeKey);
                 }
-                //НАЧАЛО******** Этап №4
+                //НАЧАЛО******** Этап №4 по ТЗ
                 for (String key : collectLemmas.keySet()) {
                     Lemma lemma = new Lemma();
                     Index index = new Index();
@@ -182,7 +184,7 @@ public class Searching {
             }
             String text="";
             if (doc ==null){
-             text="пустая страница";
+             text="406 Not Acceptable";
             }else {
                 text = htmlCleaner(String.valueOf(doc.body())).toLowerCase();
             }

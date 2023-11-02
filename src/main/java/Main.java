@@ -1,6 +1,6 @@
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
-import searchengine.services.LemmaFinder;
+import searchengine.suportServises.LemmaFinder;
 import org.apache.commons.io.FilenameUtils;
 import java.io.IOException;
 import java.util.List;
@@ -67,6 +67,21 @@ public class Main {
 //            cleanFromPartOffSpeech = List.of(text.split("\\s+"));
 //
 //            return cleanFromPartOffSpeech;
+//    }
+
+    //    public static String URLReader(URL url) throws IOException {
+//        StringBuilder sb = new StringBuilder();
+//        String line;
+//        InputStream in = url.openStream();
+//        try {
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+//            while ((line = reader.readLine()) != null) {
+//                sb.append(line).append(System.lineSeparator());
+//            }
+//        } finally {
+//            in.close();
+//        }
+//        return sb.toString();
 //    }
 
 }
