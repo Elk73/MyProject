@@ -23,7 +23,7 @@ indexing-settings:
     #- url: https://volochek.life
     #  name: Volochek.ru
     - url: https://www.lenta.ru
-      name: Лента.ру
+    - name: Лента.ру
     #    - url: https://www.skillbox.ru
     #      name: skillbox.ру
     #    - url: https://dombulgakova.ru

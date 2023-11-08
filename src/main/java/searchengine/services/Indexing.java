@@ -36,7 +36,6 @@ public class Indexing {
     static public Map listSideMap=new HashMap<>();
     public static int frequency=0;
     public Site site;
-    public static Map<String,Integer> removeKeys=new HashMap<>();
 
     public Indexing(SitesList sites, LemmaFinder lemmaFinder,CustomComparator customComparator) {
         this.sites = sites;

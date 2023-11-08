@@ -49,6 +49,11 @@ public class Searching {
         this.indexing=indexing;
     }
     public String getSearchSiteMap(String query) throws IOException {
+        for (int y=0;y<sites.getSites().size();y++){
+            if (sites.getSites().get(y).getUrl()==null){
+                sites.getSites().remove(y);
+            }
+        }
         ArrayList<String> result = new ArrayList<>();
         result.add( "\n 'count': " +sites.getSites().size());
         for (int i = 0; i < sites.getSites().size(); i++) {
@@ -69,6 +74,7 @@ public class Searching {
         String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
         SiteModel siteModel = new SiteModel();
         listSideMap.clear();
+        indexing.listSideMap.clear();
         indexing.getFinalSiteMap(siteMap);
         listSideMap.putAll(indexing.listSideMap);
         comment = "200 Ok";
@@ -132,9 +138,9 @@ public class Searching {
                         }
                     }
                 }
+                //удаление Lemma где Frequency постоянна(lemma там не встречается)
                 for (String key : lemmasSearch.keySet()) {
                     List<Lemma> byKeysFromLemma = lemmaRepository.findByLemma(key);
-                    //удаление Lemma где Frequency постоянна(lemma там не встречается)
                     int frequencyBefore=0;
                     for (Lemma byKeyFromLemma :byKeysFromLemma) {
                         if (byKeyFromLemma.getFrequency()==frequencyBefore){
@@ -167,6 +173,7 @@ public class Searching {
         String[] words = query.split("\\s+");
         substrings.addAll(List.of(words));
 
+
         // Перебираем Index и заполняем objectSearch пока без Snippet
         for (Index byLemmaId :byLemmaGetId) {
             ObjectSearch objectSearch=new ObjectSearch();
@@ -194,7 +201,6 @@ public class Searching {
             LinkedList<String> substringLemmas=new LinkedList<>();
             lemmaFinder.lemmas.clear();
             substringLemmas.addAll(lemmaFinder.collectLemmas(Arrays.toString(words)).keySet());
-//            for (String substring : substringLemmas) {System.out.println("substringLemmas- "+substring);}
             for (String substring : substringLemmas) {
                 for (String wordFromText : wordsFromText){
                     if (lemmaFinder.collectLemmas(wordFromText).containsKey(substring)) {
@@ -206,35 +212,36 @@ public class Searching {
                     lemmaFinder.lemmas.clear();
                 }
             }
-            for (Integer index : substringIndices.keySet()) {
-                System.out.println("index- "+index+"   substring- "+substringIndices.get(index));
-            }
+//            for (Integer index : substringIndices.keySet()) {
+//                System.out.println("index- "+index+"   substring- "+substringIndices.get(index));
+//            }
             //Ищем Index по близости индексов двух лемм
             LinkedHashMap<Integer, String> lemmaFirst =new LinkedHashMap<>();
             LinkedHashMap<Integer, String> lemmaSecond =new LinkedHashMap<>();
             String compareValue="";
+            String indexSecondValue="";
             for (Integer index : substringIndices.keySet()) {
                 compareValue=substringIndices.get(index);
             }
             for (Integer index : substringIndices.keySet()) {
-                System.out.println("compareValue- "+compareValue);
+//                System.out.println("compareValue- "+compareValue);
 
                 if (substringIndices.get(index).equals(compareValue)){
                     lemmaFirst.put(index,substringIndices.get(index));
-                    System.out.println(" lemmaFirst- "+index+"   substring- "+ lemmaFirst.get(index));
+//                    System.out.println(" lemmaFirst- "+index+"   substring- "+ lemmaFirst.get(index));
                     continue;
                 }
                 lemmaSecond.put(index,substringIndices.get(index));
-                System.out.println("lemmaSecond- "+index+"   substring- "+lemmaSecond.get(index));
+//                System.out.println("lemmaSecond- "+index+"   substring- "+lemmaSecond.get(index));
             }
             if (!lemmaSecond.isEmpty()||!lemmaFirst.isEmpty()) {
-                System.out.println("!lemmaSecond.isEmpty()- "+!lemmaSecond.isEmpty());
                 for (Integer indexLemmaFirst : lemmaFirst.keySet()) {
                     for (Integer indexLemmaSecond : lemmaSecond.keySet()) {
                         if (Math.abs(indexLemmaFirst - indexLemmaSecond) < 15) {
                             substringIndices.clear();
                             substringIndices.put(indexLemmaFirst, lemmaFirst.get(indexLemmaFirst));
-                            System.out.println("indexLemmaFirst- " + indexLemmaFirst + "   indexLemmaSecond- " + indexLemmaSecond +"   substring- " + lemmaFirst.get(indexLemmaFirst));
+                            indexSecondValue=lemmaSecond.get(indexLemmaSecond);
+//                            System.out.println("indexLemmaFirst- " + indexLemmaFirst + "   indexLemmaSecond- " + indexLemmaSecond +"   substring- " + lemmaFirst.get(indexLemmaFirst));
                         }
                     }
                 }
@@ -243,12 +250,12 @@ public class Searching {
             //Вырезаем подстроку и записываем в snippet
             Optional<Integer> max=substringIndices.keySet().stream().max(Comparator.comparing(i->i.intValue()));
             for (Integer index : substringIndices.keySet()) {
-                int start = index - 100;
-                int end = index + 90;
+                int start = index - 97;
+                int end = index + 87;
                 if (start <=0){
-                    start=0;
+                    start=2;
                 } else if (end>max.get()) {
-                    end=end+1;
+                    end=end-2;
                 }
                 String cutText="";
                 try {
@@ -261,10 +268,16 @@ public class Searching {
                 String[] cutTextMassive = cutText.split("\\s+");
                 String snippetText="";
                 for (int i=1;i<cutTextMassive.length-1;i++){
-                    snippetText=snippetText+" "+cutTextMassive[i];
+                    lemmaFinder.lemmas.clear();
+                    if(!lemmaFinder.collectLemmas(cutTextMassive[i]).containsKey(indexSecondValue)
+                            &&!lemmaFinder.collectLemmas(cutTextMassive[i]).containsKey(substringIndices.get(index))) {
+                        snippetText = snippetText + " " + cutTextMassive[i];
+                    } else {
+                    snippetText=snippetText+" <b>"+cutTextMassive[i]+"</b>";
+                    }
                 }
-                System.out.println("cutText - " + snippetText + "\n text -" + text + "\n pageRep -"
-                        + pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+//                System.out.println("cutText - " + snippetText + "\n text -" + text + "\n pageRep -"
+//                       + pageRepository.findById(byLemmaId.getPageId()).get().getPath());
                 objectSearch.setSnippet(snippetText);
                 break;
             }
@@ -295,7 +308,8 @@ public class Searching {
             }
             if (relevance !=0){
                 objectSearches.get(i).setRelevance(relevance);
-                System.out.println(" relevance : " + relevance);}
+ //               System.out.println(" relevance : " + relevance);
+            }
             relevance = 0;
         }
         //****удаление страниц с одним и тем же адресом , после суммирования Relevance, сиквестирование списка
@@ -324,9 +338,9 @@ public class Searching {
                 .collect(Collectors.toList());
         objectSearches.clear();
         objectSearches.addAll(sortedList);
-        for (ObjectSearch objectSearch:objectSearches){
-            System.out.println("sortedList.getRelevance(): " + objectSearch.getRelevance());
-        }
+//        for (ObjectSearch objectSearch:objectSearches){
+//            System.out.println("sortedList.getRelevance(): " + objectSearch.getRelevance());
+//        }
         //Запись в objectSearchRepository итогового objectSearches
         objectSearchRepository.deleteAll();
         if (!objectSearches.isEmpty()) {
@@ -334,7 +348,11 @@ public class Searching {
                 ObjectSearch objectSearch = new ObjectSearch();
                 objectSearch.setUri(objectSearchList.getUri());
                 objectSearch.setTitle(objectSearchList.getTitle());
+                if (objectSearchList.getSnippet().isEmpty()){
+                    objectSearch.setSnippet("");
+                }else {
                 objectSearch.setSnippet(objectSearchList.getSnippet());
+                }
                 objectSearch.setRelevance(objectSearchList.getRelevance());
                 objectSearchRepository.save(objectSearch);
             }
