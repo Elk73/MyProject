@@ -1,4 +1,4 @@
-package searchengine.suportServises;
+package searchengine.utils.supportServises;
 
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;

@@ -1,11 +1,12 @@
-package searchengine.suportServises;
+package searchengine.utils.supportServises;
 
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
-@Service
+@Component
 public class CustomComparator {
     public static <K, V extends Comparable<V>> Map<K, V>
     valueSort(final Map<K, V> map) {

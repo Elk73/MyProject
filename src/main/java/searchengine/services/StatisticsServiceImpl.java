@@ -14,6 +14,7 @@ import searchengine.repository.LemmaRepository;
 
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
+import searchengine.utils.StatisticsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,16 +30,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     private LemmaRepository lemmaRepository;
 
- //   private final Random random = new Random();
     private final SitesList sites;
     private final Indexing indexing;
 
     @Override
     public StatisticsResponse getStatistics() {
-
-//        String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
-//        String[] errors = {"Ошибка индексации: главная страница сайта не доступна","Ошибка индексации: сайт не доступен",""};
-
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
@@ -51,19 +47,14 @@ public class StatisticsServiceImpl implements StatisticsService {
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
- //           int pages = random.nextInt(1_000);
             int pages = (int) pageRepository.count();
- //           int lemmas = pages * random.nextInt(1_000);
             int lemmas = (int) lemmaRepository.count();
             item.setPages(pages);
             item.setLemmas(lemmas);
-//            item.setStatus(statuses[i % 3]);
             Iterable<SiteModel> siteResult=siteModelRepository.findAll();
             for(SiteModel s:siteResult) {
                 item.setStatus(s.getStatus().toString());
-//                item.setError(errors[i % 3]);
                 item.setError(s.getLastError());
-//                item.setStatusTime(System.currentTimeMillis() - (random.nextInt(10_000)));
                 item.setStatusTime(s.getStatusTime());
             }
             total.setPages(total.getPages() + pages);

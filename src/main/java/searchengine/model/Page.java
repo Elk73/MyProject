@@ -8,8 +8,6 @@ public class Page {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-
     @Column  (name="site_id",nullable = false)
     private  int siteId;
     @Column(unique = true,nullable = false,columnDefinition = "TEXT")

@@ -6,8 +6,8 @@ import searchengine.config.SitesList;
 import searchengine.model.*;
 import searchengine.parsers.*;
 import searchengine.repository.*;
-import searchengine.suportServises.CustomComparator;
-import searchengine.suportServises.LemmaFinder;
+import searchengine.utils.supportServises.CustomComparator;
+import searchengine.utils.supportServises.LemmaFinder;
 
 import java.time.LocalDateTime;
 import java.util.*;

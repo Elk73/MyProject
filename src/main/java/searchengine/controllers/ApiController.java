@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.model.SiteModel;
 import searchengine.parsers.ConditionStopIndexing;
 import searchengine.parsers.ControllerThread;
 import searchengine.repository.ObjectSearchRepository;
@@ -17,7 +16,7 @@ import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
 import searchengine.services.Searching;
-import searchengine.services.StatisticsService;
+import searchengine.utils.StatisticsService;
 import searchengine.services.StatisticsServiceImpl;
 
 import java.io.IOException;
@@ -76,10 +75,8 @@ public class ApiController {
             return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
         }
         if (site==null){
-//            return indexing.getSearchSiteMap(query);
             return searching.getSearchSiteMap(query);
         }
- //       indexing.getSearch(query,site);
         searching.getSearch(query,site);
          return indexing.toString(offset,limit,1);
     }

@@ -9,8 +9,8 @@ import searchengine.config.SitesList;
 import searchengine.model.*;
 import searchengine.parsers.*;
 import searchengine.repository.*;
-import searchengine.suportServises.CustomComparator;
-import searchengine.suportServises.LemmaFinder;
+import searchengine.utils.supportServises.CustomComparator;
+import searchengine.utils.supportServises.LemmaFinder;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -49,11 +49,11 @@ public class Searching {
         this.indexing=indexing;
     }
     public String getSearchSiteMap(String query) throws IOException {
-        for (int y=0;y<sites.getSites().size();y++){
-            if (sites.getSites().get(y).getUrl()==null){
-                sites.getSites().remove(y);
-            }
-        }
+//        for (int y=0;y<sites.getSites().size();y++){
+//            if (sites.getSites().get(y).getUrl()==null){
+//                sites.getSites().remove(y);
+//            }
+//        }
         ArrayList<String> result = new ArrayList<>();
         result.add( "\n 'count': " +sites.getSites().size());
         for (int i = 0; i < sites.getSites().size(); i++) {
