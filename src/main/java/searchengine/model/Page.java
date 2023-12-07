@@ -1,12 +1,18 @@
 package searchengine.model;
 
 import javax.persistence.*;
+import javax.persistence.Index;
 
 @Table(name="page",schema = "search_engine")
+//@Table(indexes = @Index (name = "p_index",columnList = "path"))
 @Entity
 public class Page {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE,generator = "pageGen")
+    @TableGenerator(name = "pageGen", table = "JPAGEN_GENERATORS",pkColumnName = "p_index",
+            pkColumnValue = "JPAGEN_PAGE_GEN",
+            valueColumnName = "path")
     private int id;
     @Column  (name="site_id",nullable = false)
     private  int siteId;

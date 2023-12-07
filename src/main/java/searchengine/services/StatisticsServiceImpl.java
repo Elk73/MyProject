@@ -33,8 +33,10 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final SitesList sites;
     private final Indexing indexing;
 
+
     @Override
     public StatisticsResponse getStatistics() {
+        indexing.startIndexing();
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);

@@ -313,11 +313,11 @@ public class Searching {
             relevance = 0;
         }
         //****удаление страниц с одним и тем же адресом , после суммирования Relevance, сиквестирование списка
-        for (int y=0;y<objectSearches.size();y++) {
-            if (objectSearches.get(y).getUri().equals("")){
-                objectSearches.remove(y);
-            }
-        }
+//        for (int y=0;y<objectSearches.size();y++) {
+//            if (objectSearches.get(y).getUri().equals("")){
+//                objectSearches.remove(y);
+//            }
+ //       }
         //****поиск МАХ среди абсолютных Relevance, расчет и запись относительной Relevance
         Optional<ObjectSearch> max=objectSearches.stream().max(Comparator.comparing(o -> o.getRelevance()));
         if (max.isPresent()) {
@@ -345,16 +345,19 @@ public class Searching {
         objectSearchRepository.deleteAll();
         if (!objectSearches.isEmpty()) {
             for (ObjectSearch objectSearchList : objectSearches) {
-                ObjectSearch objectSearch = new ObjectSearch();
-                objectSearch.setUri(objectSearchList.getUri());
-                objectSearch.setTitle(objectSearchList.getTitle());
-                if (objectSearchList.getSnippet().isEmpty()){
-                    objectSearch.setSnippet("");
-                }else {
-                objectSearch.setSnippet(objectSearchList.getSnippet());
+                if (!objectSearchList.getSnippet().isEmpty()) {
+                    ObjectSearch objectSearch = new ObjectSearch();
+                    objectSearch.setUri(objectSearchList.getUri());
+                    objectSearch.setTitle(objectSearchList.getTitle());
+//                if (objectSearchList.getSnippet().isEmpty()){
+//                    objectSearch.setSnippet("");
+//                }else {
+//                objectSearch.setSnippet(objectSearchList.getSnippet());
+//                }
+                    objectSearch.setSnippet(objectSearchList.getSnippet());
+                    objectSearch.setRelevance(objectSearchList.getRelevance());
+                    objectSearchRepository.save(objectSearch);
                 }
-                objectSearch.setRelevance(objectSearchList.getRelevance());
-                objectSearchRepository.save(objectSearch);
             }
         }
         else {

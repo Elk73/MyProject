@@ -8,7 +8,6 @@ import searchengine.parsers.*;
 import searchengine.repository.*;
 import searchengine.utils.supportServises.CustomComparator;
 import searchengine.utils.supportServises.LemmaFinder;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
@@ -31,18 +30,40 @@ public class Indexing {
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
 
+
+
+
     public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
     public static int frequency=0;
     public Site site;
 
-    public Indexing(SitesList sites, LemmaFinder lemmaFinder,CustomComparator customComparator) {
+    private static final List<Site> copySites=new ArrayList<>();
+    public static int entryCount=0;
+
+
+    public Indexing(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
         this.customComparator=customComparator;
     }
     public  String startIndexing(){
+        if (entryCount<1){
+            for (int i = 0; i < sites.getSites().size(); i++) {
+                copySites.add(i,sites.getSites().get(i));
+//                System.out.println("copySites- "+copySites.get(i).getUrl());
+            }
+            sites.getSites().clear();
+            //            System.out.println("entryCount- "+entryCount);
+        }else {
+            sites.getSites().addAll(copySites);
+//            for (int i = 0; i < sites.getSites().size(); i++) {
+//                System.out.println("Sites- "+sites.getSites().get(i).getUrl()+" - "+sites.getSites().get(i).getName());
+//            }
+        }
+        entryCount++;
+        System.out.println("entryCount- "+entryCount);
         ConditionStopIndexing.setIsStop(false);
         if (ControllerThread.isIsRun()==true) {
             return "'result': false,\n" +
