@@ -29,8 +29,7 @@ public class Indexing {
     private final SitesList sites;
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
-
-
+    private final StatisticsServiceImpl statisticsService;
 
 
     public String url;
@@ -39,31 +38,14 @@ public class Indexing {
     public static int frequency=0;
     public Site site;
 
-    private static final List<Site> copySites=new ArrayList<>();
-    public static int entryCount=0;
-
-
-    public Indexing(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator) {
+    public Indexing(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,StatisticsServiceImpl statisticsService) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
         this.customComparator=customComparator;
+        this.statisticsService=statisticsService;
     }
     public  String startIndexing(){
-        if (entryCount<1){
-            for (int i = 0; i < sites.getSites().size(); i++) {
-                copySites.add(i,sites.getSites().get(i));
-//                System.out.println("copySites- "+copySites.get(i).getUrl());
-            }
-            sites.getSites().clear();
-            //            System.out.println("entryCount- "+entryCount);
-        }else {
-            sites.getSites().addAll(copySites);
-//            for (int i = 0; i < sites.getSites().size(); i++) {
-//                System.out.println("Sites- "+sites.getSites().get(i).getUrl()+" - "+sites.getSites().get(i).getName());
-//            }
-        }
-        entryCount++;
-        System.out.println("entryCount- "+entryCount);
+        statisticsService.getStatistics();
         ConditionStopIndexing.setIsStop(false);
         if (ControllerThread.isIsRun()==true) {
             return "'result': false,\n" +
@@ -277,4 +259,5 @@ public class Indexing {
         }
         return "\n'result': true\n" +result;
     }
+
 }

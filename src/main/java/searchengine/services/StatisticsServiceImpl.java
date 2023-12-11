@@ -31,12 +31,24 @@ public class StatisticsServiceImpl implements StatisticsService {
     private LemmaRepository lemmaRepository;
 
     private final SitesList sites;
-    private final Indexing indexing;
+    private static final List<Site> copySites=new ArrayList<>();
+    public static int entryCount=0;
+
 
 
     @Override
     public StatisticsResponse getStatistics() {
-        indexing.startIndexing();
+
+                if (entryCount<1){
+            for (int i = 0; i < sites.getSites().size(); i++) {
+                copySites.add(i,sites.getSites().get(i));
+            }
+            sites.getSites().clear();
+                }else if  (entryCount==1){
+                    sites.getSites().addAll(copySites);
+                }
+        entryCount++;
+
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
@@ -45,7 +57,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<Site> sitesList = sites.getSites();
         for(int i = 0; i < sitesList.size(); i++) {
             Site site = sitesList.get(i);
-            indexing.startIndexing();
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());

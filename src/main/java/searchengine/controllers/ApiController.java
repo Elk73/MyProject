@@ -37,7 +37,7 @@ public class ApiController {
     private final Indexing indexing;
     private final Searching searching;
     public Site site;
-    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing, StatisticsServiceImpl statisticsServiceImpl,Searching searching) {
+    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing,Searching searching) {
         this.statisticsService = statisticsService;
         this.sites = sites;
         this.indexing = indexing;
@@ -50,6 +50,7 @@ public class ApiController {
     @GetMapping("/startIndexing")
     public String startIndexing(){
         indexing.startIndexing();
+        statistics();
         return "'result': true\n"+"Пройдено сайтов Count- "+sites.getSites().size();
     }
     @GetMapping("/stopIndexing")
