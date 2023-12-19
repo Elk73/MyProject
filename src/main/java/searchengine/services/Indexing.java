@@ -29,7 +29,7 @@ public class Indexing {
     private final SitesList sites;
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
-    private final StatisticsServiceImpl statisticsService;
+
 
 
     public String url;
@@ -38,14 +38,13 @@ public class Indexing {
     public static int frequency=0;
     public Site site;
 
-    public Indexing(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,StatisticsServiceImpl statisticsService) {
+    public Indexing(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
         this.customComparator=customComparator;
-        this.statisticsService=statisticsService;
     }
     public  String startIndexing(){
-        statisticsService.getStatistics();
+//        indexingPage(String.valueOf(sites.getSites().get(0).getUrl()));
         ConditionStopIndexing.setIsStop(false);
         if (ControllerThread.isIsRun()==true) {
             return "'result': false,\n" +
@@ -53,6 +52,8 @@ public class Indexing {
         }
         siteModelRepository.deleteAll();
         pageRepository.deleteAll();
+        lemmaRepository.deleteAll();
+        indexRepository.deleteAll();
         for (int i = 0; i < sites.getSites().size(); i++) {
             site = sites.getSites().get(i);
             url = site.getUrl();
@@ -60,7 +61,7 @@ public class Indexing {
             int numThreads = 5;
             LinkExecutor linkExecutor = new LinkExecutor(url, url);
             String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
-//            System.out.println("Карта Сайта -" + siteMap + "Размер списка siteMap... " + siteMap.length());
+//            startIndexing();
             SiteModel siteModel = new SiteModel();
             listSideMap.clear();
             getFinalSiteMap(siteMap);
@@ -72,20 +73,11 @@ public class Indexing {
                 saveSiteModelRepository(url,comment,siteModel,StatusType.FAILED);
             }
             else {
-                comment="200 Ok";
-                saveSiteModelRepository(url,comment,siteModel,StatusType.INDEXING);
-                lemmaRepository.deleteAll();
-                indexRepository.deleteAll();
+                comment = "200 Ok";
+                saveSiteModelRepository(url, comment, siteModel, StatusType.INDEXING);
+            }
                 for (int j = 0; j < listSideMap.size(); j++) {
-                    Page page = new Page();
-                    if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
-                        siteModel.setStatus(StatusType.FAILED);
-                        siteModel.setLastError("506 Variant Also Negotiates");
-                        siteModelRepository.save(siteModel);
-                        comment="Парсинг HTML некорректный по причине конфигурации сервера";
-                        savePageRepository(listSideMap,siteModel,500,page,comment);
-                    }
-                    else {
+                        Page page = new Page();
                         page.setSiteId(siteModel.getId());
                         page.setCode(200);
                         page.setPath((String) listSideMap.get(j));
@@ -105,11 +97,9 @@ public class Indexing {
                             indexRepository.save(index);
 
                         }
-                    }
                 }
             }
             ControllerThread.setIsRun(false);
-        }
         return "'result': true\n"+"Count- "+sites.getSites().size();
     }
     public String indexingPage(String url){
@@ -123,7 +113,7 @@ public class Indexing {
             SiteModel siteModel = new SiteModel();
             listSideMap.clear();
             getFinalSiteMap(siteMap);
-            comment = "no false";
+            comment = "200 Ok";
             String name = url.substring(12);
             siteModel.setUrl(url);
             siteModel.setName(name);
@@ -135,13 +125,6 @@ public class Indexing {
             indexRepository.deleteAll();
             for (int j = 0; j < listSideMap.size(); j++) {
                 Page page = new Page();
-                if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
-                    siteModel.setStatus(StatusType.FAILED);
-                    siteModel.setLastError("506 Variant Also Negotiates");
-                    siteModelRepository.save(siteModel);
-                    comment = "Парсинг HTML некорректный по причине конфигурации сервера";
-                    savePageRepository(listSideMap, siteModel, 500, page, comment);
-                } else {
                     page.setSiteId(siteModel.getId());
                     page.setCode(200);
                     page.setPath((String) listSideMap.get(j));
@@ -161,7 +144,6 @@ public class Indexing {
                         indexRepository.save(index);
 
                     }
-                }
             }
             return "'result': true";
     }

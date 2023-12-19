@@ -50,7 +50,6 @@ public class ApiController {
     @GetMapping("/startIndexing")
     public String startIndexing(){
         indexing.startIndexing();
-        statistics();
         return "'result': true\n"+"Пройдено сайтов Count- "+sites.getSites().size();
     }
     @GetMapping("/stopIndexing")
