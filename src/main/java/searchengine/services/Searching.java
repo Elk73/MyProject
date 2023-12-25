@@ -92,13 +92,13 @@ public class Searching {
         lemmaFinder.lemmas.clear();
         for (int j = 0; j < listSideMap.size(); j++) {
             Page page = new Page();
-            if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
-                siteModel.setStatus(StatusType.FAILED);
-                siteModel.setLastError("506 Variant Also Negotiates");
-                siteModelRepository.save(siteModel);
-                comment = "Парсинг HTML некорректный по причине конфигурации сервера";
-                indexing.savePageRepository(listSideMap, siteModel, 500, page, comment);
-            } else {
+//            if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
+//                siteModel.setStatus(StatusType.FAILED);
+//                siteModel.setLastError("506 Variant Also Negotiates");
+//                siteModelRepository.save(siteModel);
+//                comment = "Парсинг HTML некорректный по причине конфигурации сервера";
+//                indexing.savePageRepository(listSideMap, siteModel, 500, page, comment);
+//            } else {
                 page.setSiteId(siteModel.getId());
                 page.setCode(200);
                 page.setPath((String) listSideMap.get(j));
@@ -157,7 +157,7 @@ public class Searching {
                         frequencyBefore++;
                     }
                 }
-            }
+ //           }
 
         }
         //****создание и заполнение objectSearch

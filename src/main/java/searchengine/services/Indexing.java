@@ -10,7 +10,10 @@ import searchengine.utils.supportServises.CustomComparator;
 import searchengine.utils.supportServises.LemmaFinder;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +47,27 @@ public class Indexing {
         this.customComparator=customComparator;
     }
     public  String startIndexing(){
-//        indexingPage(String.valueOf(sites.getSites().get(0).getUrl()));
+        // Run a task specified by a Runnable Object asynchronously.
+
+//        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            // Simulate a long-running Job
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+            System.out.println("I'll run in a separate thread than the main thread.");
+            return "I'll run in a separate thread than the main thread." ;
+        });
+         // Block and wait for the future to complete
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
         ConditionStopIndexing.setIsStop(false);
         if (ControllerThread.isIsRun()==true) {
             return "'result': false,\n" +
@@ -61,7 +84,6 @@ public class Indexing {
             int numThreads = 5;
             LinkExecutor linkExecutor = new LinkExecutor(url, url);
             String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
-//            startIndexing();
             SiteModel siteModel = new SiteModel();
             listSideMap.clear();
             getFinalSiteMap(siteMap);
