@@ -17,9 +17,11 @@ import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
 import searchengine.services.Searching;
 import searchengine.utils.StatisticsService;
-import searchengine.services.StatisticsServiceImpl;
-
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 
 @RestController
 @RequestMapping("/api")
@@ -49,8 +51,12 @@ public class ApiController {
     }
     @GetMapping("/startIndexing")
     public String startIndexing(){
+        if ( ControllerThread.isIsRun()==true) {
+            return "{\n  'result': false,\n" +
+                    "  'error': \"Индексация уже запущена\"\n}";
+        }
         indexing.startIndexing();
-        return "'result': true\n"+"Пройдено сайтов Count- "+sites.getSites().size();
+        return "{\n  'result': true\n}";
     }
     @GetMapping("/stopIndexing")
     public String stopIndexing(){
