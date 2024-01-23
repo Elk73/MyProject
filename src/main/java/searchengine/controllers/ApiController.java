@@ -1,5 +1,4 @@
 package searchengine.controllers;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +17,6 @@ import searchengine.services.Indexing;
 import searchengine.services.Searching;
 import searchengine.utils.StatisticsService;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 
 @RestController
 @RequestMapping("/api")
