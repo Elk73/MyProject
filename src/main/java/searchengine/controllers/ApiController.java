@@ -15,6 +15,7 @@ import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
 import searchengine.services.Searching;
+import searchengine.utils.Response;
 import searchengine.utils.StatisticsService;
 import java.io.IOException;
 
@@ -45,13 +46,13 @@ public class ApiController {
         return ResponseEntity.ok(statisticsService.getStatistics());
     }
     @GetMapping("/startIndexing")
-    public String startIndexing(){
-        if ( ControllerThread.isIsRun()==true) {
-            return "{\n  'result': false,\n" +
-                    "  'error': \"Индексация уже запущена\"\n}";
-        }
-        indexing.startIndexing();
-        return "{\n  'result': true\n}";
+    public ResponseEntity<Response> startIndexing(){
+//        if ( ControllerThread.isIsRun()==true) {
+//            return "{\n  'result': false,\n" +
+//                    "  'error': \"Индексация уже запущена\"\n}";
+//        }
+//        indexing.startIndexing();
+        return ResponseEntity.ok(indexing.startIndexing());
     }
     @GetMapping("/stopIndexing")
     public String stopIndexing(){

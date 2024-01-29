@@ -50,12 +50,10 @@ public class Indexing {
         this.customComparator=customComparator;
         this.response=response;
     }
-    public  String startIndexing(){
+    public  Response startIndexing(){
         ControllerThread.setIsRun(true);
         ConditionStopIndexing.setIsStop(false);
-
         // Run a task specified by a Runnable Object asynchronously.
-  //      CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
         CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
             try {
                 TimeUnit.SECONDS.sleep(1);
@@ -63,28 +61,6 @@ public class Indexing {
                 throw new IllegalStateException(e);
             }
             System.out.println("I'll run in a separate thread than the main thread.!!!!!!!!!     !!!!!!!!!    !!!!!!!!");
-
-//            return "{\n  'result': true\n}" ;
- //           return "{\n  'result': "+response.toString()+"\n}" ;
-            return response;
-        });
-        try {
-
-            future.get();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Enter resultNow()  ?????????????????????????????????????????????????????????????????????????????");
-
-        future.resultNow();
-
-//        System.out.println(future.complete("{\n  'result': true\n}"));
-        System.out.println(future.resultNow());
-//        System.out.println(future.complete("{\n  'result': true\n}"));
-        System.out.println("I had run over in a separate thread than the main thread.");
-
             siteModelRepository.deleteAll();
             pageRepository.deleteAll();
             lemmaRepository.deleteAll();
@@ -133,7 +109,77 @@ public class Indexing {
                 }
             }
             ControllerThread.setIsRun(false);
-            return "{\n  'result': true\n}";
+            return response;
+        });
+//        try {
+//
+//            future.get();
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        } catch (ExecutionException e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("Enter resultNow()  ?????????????????????????????????????????????????????????????????????????????");
+//
+//        future.resultNow();
+//
+////        System.out.println(future.complete("{\n  'result': true\n}"));
+//        System.out.println(future.resultNow());
+////        System.out.println(future.complete("{\n  'result': true\n}"));
+//        System.out.println("I had run over in a separate thread than the main thread.");
+
+//            siteModelRepository.deleteAll();
+//            pageRepository.deleteAll();
+//            lemmaRepository.deleteAll();
+//            indexRepository.deleteAll();
+//            for (int i = 0; i < sites.getSites().size(); i++) {
+//                site = sites.getSites().get(i);
+//                url = site.getUrl();
+//                LinkExecutor.outHTML.clear();
+//                int numThreads = 5;
+//                LinkExecutor linkExecutor = new LinkExecutor(url, url);
+//                String siteMap = numThreads == 0 ? new ForkJoinPool().invoke(linkExecutor) : new ForkJoinPool(numThreads).invoke(linkExecutor);
+//                SiteModel siteModel = new SiteModel();
+//                listSideMap.clear();
+//                getFinalSiteMap(siteMap);
+//                if (ConditionStopIndexing.isAfterStop() == true) {
+//                    comment = "Индексация остановлена пользователем";
+//                    saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+//                } else if (listSideMap.size() <= 1) {
+//                    comment = "503 Service Unavailable";
+//                    saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+//                } else {
+//                    comment = "200 Ok";
+//                    saveSiteModelRepository(url, comment, siteModel, StatusType.INDEXING);
+//                }
+//                for (int j = 0; j < listSideMap.size(); j++) {
+//                    Page page = new Page();
+//                    page.setSiteId(siteModel.getId());
+//                    page.setCode(200);
+//                    page.setPath((String) listSideMap.get(j));
+//                    page.setContent((String) LinkExecutor.outHTML.get(j));
+//                    pageRepository.save(page);
+//                    lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
+//                    for (String key : lemmaFinder.lemmas.keySet()) {
+//                        Lemma lemma = new Lemma();
+//                        Index index = new Index();
+//                        lemma.setLemma(String.valueOf(key));
+//                        lemma.setFrequency(frequency + lemmaFinder.lemmas.get(key));
+//                        lemma.setSiteId(page.getSiteId());
+//                        lemmaRepository.save(lemma);
+//                        index.setPageId(page.getId());
+//                        index.setLemmaId(lemma.getId());
+//                        index.setRank(lemma.getFrequency());
+//                        indexRepository.save(index);
+//
+//                    }
+//                }
+//            }
+//            ControllerThread.setIsRun(false);
+//            return "{\n  'result': true\n}";
+
+        return response;
+
     }
     public String indexingPage(String url){
             siteModelRepository.deleteAll();
