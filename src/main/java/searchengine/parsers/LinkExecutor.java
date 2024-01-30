@@ -49,7 +49,7 @@ public class LinkExecutor extends RecursiveTask<String> {
             while (ConditionStopIndexing.isIsStop()==true)
             {
                 ConditionStopIndexing.setIsStop(false);
-                Thread.sleep(5000);
+                Thread.sleep(50000);
                 ConditionStopIndexing.setAfterStop(true);
             }
             doc = Jsoup.connect(url)

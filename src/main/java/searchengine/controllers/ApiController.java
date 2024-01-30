@@ -1,5 +1,6 @@
 package searchengine.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,11 +48,6 @@ public class ApiController {
     }
     @GetMapping("/startIndexing")
     public ResponseEntity<Response> startIndexing(){
-//        if ( ControllerThread.isIsRun()==true) {
-//            return "{\n  'result': false,\n" +
-//                    "  'error': \"Индексация уже запущена\"\n}";
-//        }
-//        indexing.startIndexing();
         return ResponseEntity.ok(indexing.startIndexing());
     }
     @GetMapping("/stopIndexing")
