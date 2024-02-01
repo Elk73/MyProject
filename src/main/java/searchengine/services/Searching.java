@@ -11,7 +11,6 @@ import searchengine.parsers.*;
 import searchengine.repository.*;
 import searchengine.utils.supportServises.CustomComparator;
 import searchengine.utils.supportServises.LemmaFinder;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -49,11 +48,6 @@ public class Searching {
         this.indexing=indexing;
     }
     public String getSearchSiteMap(String query) throws IOException {
-//        for (int y=0;y<sites.getSites().size();y++){
-//            if (sites.getSites().get(y).getUrl()==null){
-//                sites.getSites().remove(y);
-//            }
-//        }
         ArrayList<String> result = new ArrayList<>();
         result.add( "\n 'count': " +sites.getSites().size());
         for (int i = 0; i < sites.getSites().size(); i++) {
@@ -92,13 +86,6 @@ public class Searching {
         lemmaFinder.lemmas.clear();
         for (int j = 0; j < listSideMap.size(); j++) {
             Page page = new Page();
-//            if (listSideMap.size() != LinkExecutor.outHTML.size() && listSideMap.size() < 1) {
-//                siteModel.setStatus(StatusType.FAILED);
-//                siteModel.setLastError("506 Variant Also Negotiates");
-//                siteModelRepository.save(siteModel);
-//                comment = "Парсинг HTML некорректный по причине конфигурации сервера";
-//                indexing.savePageRepository(listSideMap, siteModel, 500, page, comment);
-//            } else {
                 page.setSiteId(siteModel.getId());
                 page.setCode(200);
                 page.setPath((String) listSideMap.get(j));
@@ -117,16 +104,12 @@ public class Searching {
                 for (String removeKey : removeKeys.keySet()) {
                     collectLemmas.remove(removeKey);
                 }
-                //НАЧАЛО******** Этап №4 по ТЗ
+                //Beginning stage №4
                 for (String key : collectLemmas.keySet()) {
                     Lemma lemma = new Lemma();
                     Index index = new Index();
                     for (String keyLemmasSearch : lemmasSearch.keySet()) {
                         if (key.equals(keyLemmasSearch)) {
-//                        System.out.println("LemmasSearch.get(keyLemmasSearch) : "+lemmasSearch.get(keyLemmasSearch));
-//                        System.out.println("KeyLemmasSearch : "+keyLemmasSearch);
-//                        System.out.println("Key : "+key);
-//                        System.out.println("LemmaFinder.lemmas.get(key) : "+lemmaFinder.lemmas.get(key));
                             lemma.setLemma(keyLemmasSearch);
                             lemma.setFrequency(lemmaFinder.lemmas.get(key).intValue());
                             lemma.setSiteId(page.getSiteId());
@@ -138,7 +121,7 @@ public class Searching {
                         }
                     }
                 }
-                //удаление Lemma где Frequency постоянна(lemma там не встречается)
+                //Delete Lemma where  Frequency const.
                 for (String key : lemmasSearch.keySet()) {
                     List<Lemma> byKeysFromLemma = lemmaRepository.findByLemma(key);
                     int frequencyBefore=0;
@@ -147,7 +130,7 @@ public class Searching {
                             lemmaRepository.deleteById(byKeyFromLemma.getId());
                             continue;
                         }
-                        //приведение Index в соответствие с Lemma
+                        //Setting Index equals Lemma
                         Iterable<Index> unRemovedLemmas = indexRepository.findAll();
                         for (Index unRemovedLemma :unRemovedLemmas) {
                             if (!lemmaRepository.existsById(unRemovedLemma.getLemmaId())){
@@ -157,24 +140,22 @@ public class Searching {
                         frequencyBefore++;
                     }
                 }
- //           }
-
         }
-        //****создание и заполнение objectSearch
+        //Creating and filling objectSearch
         Iterable<Index> byLemmaGetId = indexRepository.findAll();
         Iterable<Page> pagesFromRep=pageRepository.findAll();
         List<Page> pages = new ArrayList<>();
         for(Page pageFromRep:pagesFromRep) {
             pages.add( pageFromRep);
         }
-        //Запрос Query разделяем на слова и записываем в список
+        // Query divide on words and writing on  list
         LinkedHashMap<Integer, String> substringIndices =new LinkedHashMap<>();
         LinkedList<String> substrings = new LinkedList<>();
         String[] words = query.split("\\s+");
         substrings.addAll(List.of(words));
 
 
-        // Перебираем Index и заполняем objectSearch пока без Snippet
+        // Sort out Index and filling objectSearch (without Snippet)
         for (Index byLemmaId :byLemmaGetId) {
             ObjectSearch objectSearch=new ObjectSearch();
             Document doc = null;
@@ -212,10 +193,7 @@ public class Searching {
                     lemmaFinder.lemmas.clear();
                 }
             }
-//            for (Integer index : substringIndices.keySet()) {
-//                System.out.println("index- "+index+"   substring- "+substringIndices.get(index));
-//            }
-            //Ищем Index по близости индексов двух лемм
+            //Seek Index  nearby Indexes for couple Lemma
             LinkedHashMap<Integer, String> lemmaFirst =new LinkedHashMap<>();
             LinkedHashMap<Integer, String> lemmaSecond =new LinkedHashMap<>();
             String compareValue="";
@@ -224,15 +202,11 @@ public class Searching {
                 compareValue=substringIndices.get(index);
             }
             for (Integer index : substringIndices.keySet()) {
-//                System.out.println("compareValue- "+compareValue);
-
                 if (substringIndices.get(index).equals(compareValue)){
                     lemmaFirst.put(index,substringIndices.get(index));
-//                    System.out.println(" lemmaFirst- "+index+"   substring- "+ lemmaFirst.get(index));
                     continue;
                 }
                 lemmaSecond.put(index,substringIndices.get(index));
-//                System.out.println("lemmaSecond- "+index+"   substring- "+lemmaSecond.get(index));
             }
             if (!lemmaSecond.isEmpty()||!lemmaFirst.isEmpty()) {
                 for (Integer indexLemmaFirst : lemmaFirst.keySet()) {
@@ -241,13 +215,12 @@ public class Searching {
                             substringIndices.clear();
                             substringIndices.put(indexLemmaFirst, lemmaFirst.get(indexLemmaFirst));
                             indexSecondValue=lemmaSecond.get(indexLemmaSecond);
-//                            System.out.println("indexLemmaFirst- " + indexLemmaFirst + "   indexLemmaSecond- " + indexLemmaSecond +"   substring- " + lemmaFirst.get(indexLemmaFirst));
                         }
                     }
                 }
             }
 
-            //Вырезаем подстроку и записываем в snippet
+            //Cut substring and writing on snippet
             Optional<Integer> max=substringIndices.keySet().stream().max(Comparator.comparing(i->i.intValue()));
             for (Integer index : substringIndices.keySet()) {
                 int start = index - 97;
@@ -276,8 +249,6 @@ public class Searching {
                     snippetText=snippetText+" <b>"+cutTextMassive[i]+"</b>";
                     }
                 }
-//                System.out.println("cutText - " + snippetText + "\n text -" + text + "\n pageRep -"
-//                       + pageRepository.findById(byLemmaId.getPageId()).get().getPath());
                 objectSearch.setSnippet(snippetText);
                 break;
             }
@@ -286,13 +257,13 @@ public class Searching {
             objectSearch.setRelevance(byLemmaId.getRank());
             objectSearchRepository.save(objectSearch);
         }
-        //****создание копии списка objectSearchRepository
+        //Creating copy of list from objectSearchRepository
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
         List<ObjectSearch> objectSearches = new ArrayList<>();
         for(ObjectSearch objectSearch:objectSearchesRep) {
             objectSearches.add(objectSearch);
         }
-        //****поиск одинаковых страниц для суммирования Relevance и его запись в список
+        //Searching  equals pages for  adding Relevance and  recording on list
         double relevance=0;
         for (int i=0;i<objectSearches.size();i++) {
             Object objectOne = objectSearches.get(i).getUri();
@@ -308,7 +279,6 @@ public class Searching {
             }
             if (relevance !=0){
                 objectSearches.get(i).setRelevance(relevance);
- //               System.out.println(" relevance : " + relevance);
             }
             relevance = 0;
         }
@@ -318,7 +288,7 @@ public class Searching {
 //                objectSearches.remove(y);
 //            }
  //       }
-        //****поиск МАХ среди абсолютных Relevance, расчет и запись относительной Relevance
+        //Searching maximum from  absolut Relevance, calculation and recording relative Relevance
         Optional<ObjectSearch> max=objectSearches.stream().max(Comparator.comparing(o -> o.getRelevance()));
         if (max.isPresent()) {
             double maxRelevance = max.get().getRelevance();
@@ -326,7 +296,7 @@ public class Searching {
                 objectSearch.setRelevance(objectSearch.getRelevance() / maxRelevance);
             }
         }
-        //****сортировка списка по возрастанию Relevance
+        //Sort out list increasing Relevance
         List<ObjectSearch> sortedList = objectSearches.stream()
                 .sorted((o1, o2) -> {
                     if(o1.getRelevance() == o2.getRelevance())
@@ -338,10 +308,7 @@ public class Searching {
                 .collect(Collectors.toList());
         objectSearches.clear();
         objectSearches.addAll(sortedList);
-//        for (ObjectSearch objectSearch:objectSearches){
-//            System.out.println("sortedList.getRelevance(): " + objectSearch.getRelevance());
-//        }
-        //Запись в objectSearchRepository итогового objectSearches
+        //Recording on objectSearchRepository final objectSearches
         objectSearchRepository.deleteAll();
         if (!objectSearches.isEmpty()) {
             for (ObjectSearch objectSearchList : objectSearches) {
@@ -349,11 +316,6 @@ public class Searching {
                     ObjectSearch objectSearch = new ObjectSearch();
                     objectSearch.setUri(objectSearchList.getUri());
                     objectSearch.setTitle(objectSearchList.getTitle());
-//                if (objectSearchList.getSnippet().isEmpty()){
-//                    objectSearch.setSnippet("");
-//                }else {
-//                objectSearch.setSnippet(objectSearchList.getSnippet());
-//                }
                     objectSearch.setSnippet(objectSearchList.getSnippet());
                     objectSearch.setRelevance(objectSearchList.getRelevance());
                     objectSearchRepository.save(objectSearch);
