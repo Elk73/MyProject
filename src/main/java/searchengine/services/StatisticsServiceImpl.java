@@ -3,6 +3,7 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import searchengine.config.SitesList;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
@@ -27,12 +28,17 @@ public class StatisticsServiceImpl implements StatisticsService {
     private PageRepository pageRepository;
     @Autowired
     private LemmaRepository lemmaRepository;
+    private final SitesList sites;
 
 
     @Override
     public StatisticsResponse getStatistics() {
         TotalStatistics total = new TotalStatistics();
+        if (siteModelRepository.count()==0){
+            total.setSites(sites.getSites().size());
+        }else {
         total.setSites((int) siteModelRepository.count());
+        }
         total.setIndexing(true);
 
        List<DetailedStatisticsItem> detailed = new ArrayList<>();
