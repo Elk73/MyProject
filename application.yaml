@@ -18,12 +18,12 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru
-      name: PlayBack.ru
+    #- url: https://www.playback.ru
+    #  name: PlayBack.ru
     #- url: https://volochek.life
     #  name: Volochek.ru
-    - url: https://www.lenta.ru
-      name: Лента.ру
+    #- url: https://www.lenta.ru
+    #  name: Лента.ру
     #    - url: https://www.skillbox.ru
     #      name: skillbox.ру
     #    - url: https://dombulgakova.ru
@@ -40,5 +40,5 @@ indexing-settings:
     #      name: Et-cetera.ru
     #    - url: https://www.lutherancathedral.ru
     #      name: Lutherancathedral.ru
-    - url: https://www.svetlovka.ru
-      name: Svetlovka.ru
+    #- url: https://www.svetlovka.ru
+    #  name: Svetlovka.ru

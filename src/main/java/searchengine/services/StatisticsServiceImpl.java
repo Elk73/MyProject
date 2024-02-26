@@ -3,7 +3,6 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
@@ -34,38 +33,54 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public StatisticsResponse getStatistics() {
-        //       TotalStatistics total = new TotalStatistics();
+
         if (siteModelRepository.count() == 0) {
             TotalStatistics total = new TotalStatistics();
-            total.setSites(sites.getSites().size());
-            total.setIndexing(true);
-            List<DetailedStatisticsItem> detailed = new ArrayList<>();
-            StatisticsData data = new StatisticsData();
-            List<Site> sitesList = sites.getSites();
-            for (int i = 0; i < sitesList.size(); i++) {
-                Site site = sitesList.get(i);
-                DetailedStatisticsItem item = new DetailedStatisticsItem();
-                item.setName(site.getName());
-                item.setUrl(site.getUrl());
-                int pages = 0;
-                int lemmas = 0;
-                item.setPages(pages);
-                item.setLemmas(lemmas);
-                item.setStatus(null);
-                item.setError(null);
-                item.setStatusTime(null);
+            if (sites.getSites().size() == 0) {
+                StatisticsResponse response = new StatisticsResponse();
+                List<DetailedStatisticsItem> detailed = new ArrayList<>();
+                StatisticsData data = new StatisticsData();
+                total.setSites(0);
                 total.setPages(0);
                 total.setLemmas(0);
-                detailed.add(item);
                 data.setDetailed(detailed);
                 data.setTotal(total);
+                response.setStatistics(data);
+                System.out.println("DATA 1-" + data);
+                response.setResult(true);
+                return response;
             }
-            StatisticsResponse response = new StatisticsResponse();
-            response.setStatistics(data);
-            response.setResult(true);
-
-            return response;
-        } else {
+        }
+//            else{
+//                 total.setSites(sites.getSites().size());
+//            }
+//            total.setIndexing(true);
+//            List<DetailedStatisticsItem> detailed = new ArrayList<>();
+//            StatisticsData data = new StatisticsData();
+//            List<Site> sitesList = sites.getSites();
+//            for (int i = 0; i < sitesList.size(); i++) {
+//                Site site = sitesList.get(i);
+//                DetailedStatisticsItem item = new DetailedStatisticsItem();
+//                item.setName(site.getName());
+//                item.setUrl(site.getUrl());
+//                item.setPages(0);
+//                item.setLemmas(0);
+//                item.setStatus("");
+//                item.setError("");
+//                item.setStatusTime(LocalDateTime.now());
+//                total.setPages(0);
+//                total.setLemmas(0);
+//                detailed.add(item);
+//                data.setDetailed(detailed);
+//                data.setTotal(total);
+//            }
+//            StatisticsResponse response = new StatisticsResponse();
+//            response.setStatistics(data);
+//            System.out.println("DATA 2 -"+data);
+//            response.setResult(true);
+//            return response;
+//        }
+ //       else {
             TotalStatistics total = new TotalStatistics();
             total.setSites((int) siteModelRepository.count());
 
@@ -111,5 +126,5 @@ public class StatisticsServiceImpl implements StatisticsService {
 
             return response;
         }
-    }
+//    }
 }

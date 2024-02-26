@@ -31,10 +31,10 @@ public class Main {
  //       getCleanFromPartOffSpeech(text);
 
 //        String url = "https://www.svetlovka.ru/upload/files/svetlov/%d0%93%d0%a0%d0%95%d0%9d%d0%90%d0%94%d0%90.pdf";
-        String url = "https://www.svetlovka.ru/upload/iblock/eff/eff65a457b5bbe5b601d0c68abb445f8.png";
-        System.out.println("getBaseName(url) - "+FilenameUtils.getBaseName(url)); // -> file
-        System.out.println("TypeFiles - "+FilenameUtils.getExtension(url)); // -> xml
-        System.out.println("getName(url) - "+FilenameUtils.getName(url)); // -> file.xml
+//        String url = "https://www.svetlovka.ru/upload/iblock/eff/eff65a457b5bbe5b601d0c68abb445f8.png";
+ //       System.out.println("getBaseName(url) - "+FilenameUtils.getBaseName(url)); // -> file
+ //       System.out.println("TypeFiles - "+FilenameUtils.getExtension(url)); // -> xml
+//        System.out.println("getName(url) - "+FilenameUtils.getName(url)); // -> file.xml
     }
 //    public static List<String> getCleanFromPartOffSpeech (String text) throws IOException {
 //        LuceneMorphology luceneMorph = new RussianLuceneMorphology();
