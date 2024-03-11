@@ -33,30 +33,84 @@ public class Searching {
     private final CustomComparator customComparator;
     private final Indexing indexing;
 
-    public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
 
-    public Site site;
     public static Map<String,Integer> removeKeys=new HashMap<>();
 
-    public Searching(SiteModelRepository siteModelRepository, SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing) {
-        this.siteModelRepository = siteModelRepository;
+    public Searching(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
         this.customComparator=customComparator;
         this.indexing=indexing;
     }
     public String getSearchSiteMap(String query) throws IOException {
-        ArrayList<String> result = new ArrayList<>();
-        result.add( "\n 'count': " +sites.getSites().size());
+        String result;
+        String resultSegregate="";
+        LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
+        LinkedList<SiteModel> siteModelList = new LinkedList<>();
+
         for (int i = 0; i < sites.getSites().size(); i++) {
-            site = sites.getSites().get(i);
-            url = site.getUrl();
+            Site site = sites.getSites().get(i);
+            String url = site.getUrl();
             getSearch(query,url);
-            result.add(indexing.toString(0,20,i+1));
+
+            Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
+            Iterable<ObjectSearch> oSRep = objectSearchRepository.findAll();
+            for (SiteModel siteModel:siteModelRep){
+                for(ObjectSearch oS :oSRep) {
+                    if (oS.getRelevance()!=0) {
+                        siteModelList.add(siteModel);
+                        break;
+                    }
+                }
+            }
+            //Creating copy of list from objectSearchRepository
+            Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
+            for(ObjectSearch objectSearch:objectSearchesRep) {
+                if (objectSearch.getRelevance()!=0) {
+                    objectSearches.add(objectSearch);
+                }
+            }
+            //Creating ObjectSearch for using objectSearchRepository at indexing.toString(0, 20,1)
+            objectSearchRepository.deleteAll();
+            for (ObjectSearch objectSearchList : objectSearches) {
+                ObjectSearch objectSearch = new ObjectSearch();
+                objectSearch.setUri(objectSearchList.getUri());
+                objectSearch.setTitle(objectSearchList.getTitle());
+                objectSearch.setSnippet(objectSearchList.getSnippet());
+                objectSearch.setRelevance(objectSearchList.getRelevance());
+                objectSearchRepository.save(objectSearch);
+            }
+            //Adding and sorting data in list result1
+            for(ObjectSearch objectSearch:objectSearchesRep) {
+                if (objectSearch.getRelevance() != 0) {
+                    resultSegregate=resultSegregate + toString(0, 20,1);
+                    objectSearchRepository.deleteAll();
+                }
+            }
         }
-        return result.toString();
+        siteModelRepository.deleteAll();
+        for (SiteModel siteModelL:siteModelList){
+            SiteModel siteModel = new SiteModel();
+            siteModel.setUrl(siteModelL.getUrl());
+            siteModel.setName(siteModelL.getName());
+            siteModel.setLastError(siteModelL.getLastError());
+            siteModel.setStatus(siteModelL.getStatus());
+            siteModel.setStatusTime(siteModelL.getStatusTime());
+            siteModelRepository.save(siteModel);
+        }
+        objectSearchRepository.deleteAll();
+        for (ObjectSearch objectSearchList : objectSearches) {
+                ObjectSearch objectSearch = new ObjectSearch();
+                objectSearch.setUri(objectSearchList.getUri());
+                objectSearch.setTitle(objectSearchList.getTitle());
+                objectSearch.setSnippet(objectSearchList.getSnippet());
+                objectSearch.setRelevance(objectSearchList.getRelevance());
+                objectSearchRepository.save(objectSearch);
+            }
+        result="{\n   'result': true" + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
+        return result;
     }
     public String getSearch(String query,String site) throws IOException {
         siteModelRepository.deleteAll();
@@ -329,10 +383,50 @@ public class Searching {
             objectSearchFalse.setSnippet("'result': false,\n" +
                     "\t        'error':404 Not Found");
             objectSearchFalse.setRelevance(0);
-            objectSearchRepository.save(objectSearchFalse);}
+            objectSearchRepository.save(objectSearchFalse);
+        }
         return "'result': true";
     }
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();
+    }
+    public String toString(int offset, int limit, int count) {
+        String result="";
+        Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
+        List<ObjectSearch> objectSearches = new ArrayList<>();
+        for(ObjectSearch objectSearch:objectSearchesRep) {
+            objectSearches.add(objectSearch);
+        }
+        Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
+        for(SiteModel siteModel:siteModelRep) {
+            if (limit==0){
+                limit=20;
+            }
+            if (limit>objectSearches.size()){
+                limit=objectSearches.size();
+            }
+            if (offset>limit){
+                offset=0;
+            }
+            if (offset>0){
+                limit=limit-offset;
+            }
+            int limitToString=1;
+            for (int j=offset;j<=objectSearches.size();j++) {
+                if (limitToString<=limit) {
+                    result=result+
+                            "\n        {" +
+                            "\n            'site': " + siteModel.getUrl() + "," +
+                            "\n            'siteName': " + siteModel.getName() + "," +
+                            "\n            'uri': " + objectSearches.get(j).getUri() +
+                            "\n            'title' :" + objectSearches.get(j).getTitle() + "," +
+                            "\n            'snippet' :" + objectSearches.get(j).getSnippet() + "," +
+                            "\n            'relevance' :" + objectSearches.get(j).getRelevance() +
+                            "\n        },";
+                }
+                limitToString=limitToString+1;
+            }
+        }
+        return result;
     }
 }

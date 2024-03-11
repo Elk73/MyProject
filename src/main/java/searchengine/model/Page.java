@@ -1,7 +1,6 @@
 package searchengine.model;
 
 import javax.persistence.*;
-import javax.persistence.Index;
 
 @Table(name="page",schema = "search_engine")
 //@Table(indexes = @Index (name = "p_index",columnList = "path"))
@@ -40,7 +39,7 @@ public class Page {
         this.path = path;
     }
 
-    public int getCode(int i) {
+    public int getCode() {
         return code;
     }
 

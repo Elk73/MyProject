@@ -71,12 +71,12 @@ public class ApiController {
     public String search(String query,String site,int offset,int limit) throws IOException {
         if ( query==null) {
             return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
-        }
+        }else
         if (site==null){
             return searching.getSearchSiteMap(query);
-        }
-        searching.getSearch(query,site);
-         return indexing.toString(offset,limit,1);
+        } else searching.getSearch(query,site);
+//         return "\n   'result': true" + "  \n 'count': " +objectSearchRepository.count()+","+
+//                         indexing.toString(offset,limit,1);
+        return "{\n   'result': true" + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit,1)+"\n    ]\n}";
     }
-
 }

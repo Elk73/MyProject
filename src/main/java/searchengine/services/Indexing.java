@@ -188,15 +188,6 @@ public class Indexing {
         siteModel.setStatusTime(LocalDateTime.now());
         siteModelRepository.save(siteModel);
     }
-//    public void savePageRepository(Map listSideMap, SiteModel siteModel, int code, Page page, String comment){
-//        for (int j = 0; j < listSideMap.size(); j++) {
-//            page.setSiteId(siteModel.getId());
-//            page.setCode(code);
-//            page.setPath((String) listSideMap.get(j));
-//            page.setContent(comment);
-//            pageRepository.save(page);
-//        }
-//    }
     public static boolean isValidURL(String url) {
         final String URL_REGEX =
                 "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
@@ -209,48 +200,4 @@ public class Indexing {
             Matcher matcher = URL_PATTERN.matcher(url);
             return matcher.matches();
         }
-
-    public String toString(int offset,int limit,int count) {
-        ArrayList<String> result = new ArrayList<>();
-        Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
-        List<ObjectSearch> objectSearches = new ArrayList<>();
-        for(ObjectSearch objectSearch:objectSearchesRep) {
-            objectSearches.add(objectSearch);
-        }
-        Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
-        for(SiteModel siteModel:siteModelRep) {
-            if (limit==0){
-                limit=20;
-            }
-            if (limit>objectSearches.size()){
-                limit=objectSearches.size();
-            }
-            if (offset>limit){
-                offset=0;
-            }
-            if (offset>0){
-                limit=limit-offset;
-            }
-            int limitToString=1;
-            for (int j=offset;j<=objectSearches.size();j++) {
-                if (limitToString<=limit) {
-                    result.add(
-                            "\n'count': " + count + "," +
-                                    "\n    'data':[ " +
-                                    "\n            {" +
-                                    "\n            'site': " + siteModel.getUrl() + "," +
-                                    "\n            'siteName': " + siteModel.getName() + "," +
-                                    "\n            'uri': " + objectSearches.get(j).getUri() +
-                                    "\n            'title' :" + objectSearches.get(j).getTitle() + "," +
-                                    "\n            'snippet' :" + objectSearches.get(j).getSnippet() + "," +
-                                    "\n            'relevance' :" + objectSearches.get(j).getRelevance() +
-                                    "\n            }");
-
-                }
-                 limitToString=limitToString+1;
-            }
-        }
-        return "\n'result': true\n" +result;
-    }
-
 }
