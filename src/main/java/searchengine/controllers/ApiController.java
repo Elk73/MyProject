@@ -73,10 +73,8 @@ public class ApiController {
             return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
         }else
         if (site==null){
-            return searching.getSearchSiteMap(query);
+            return searching.getSearchSiteMap(query,offset,limit);
         } else searching.getSearch(query,site);
-//         return "\n   'result': true" + "  \n 'count': " +objectSearchRepository.count()+","+
-//                         indexing.toString(offset,limit,1);
-        return "{\n   'result': true" + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit,1)+"\n    ]\n}";
+        return "{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit)+"\n    ]\n}";
     }
 }

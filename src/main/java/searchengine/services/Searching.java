@@ -44,7 +44,8 @@ public class Searching {
         this.customComparator=customComparator;
         this.indexing=indexing;
     }
-    public String getSearchSiteMap(String query) throws IOException {
+    public String getSearchSiteMap(String query,int offset,int limit) throws IOException {
+ //       int count=0;
         String result;
         String resultSegregate="";
         LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
@@ -67,26 +68,30 @@ public class Searching {
             }
             //Creating copy of list from objectSearchRepository
             Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
+            LinkedList<ObjectSearch> objectSearchesStr = new LinkedList<>();
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance()!=0) {
                     objectSearches.add(objectSearch);
+                    objectSearchesStr.add(objectSearch);
                 }
             }
-            //Creating ObjectSearch for using objectSearchRepository at indexing.toString(0, 20,1)
+            //Creating ObjectSearch for using objectSearchRepository in searching.toString(offset,limit)
             objectSearchRepository.deleteAll();
-            for (ObjectSearch objectSearchList : objectSearches) {
+            for (ObjectSearch objectSearchList : objectSearchesStr) {
                 ObjectSearch objectSearch = new ObjectSearch();
                 objectSearch.setUri(objectSearchList.getUri());
                 objectSearch.setTitle(objectSearchList.getTitle());
                 objectSearch.setSnippet(objectSearchList.getSnippet());
                 objectSearch.setRelevance(objectSearchList.getRelevance());
                 objectSearchRepository.save(objectSearch);
+//                count += objectSearchRepository.count();
             }
-            //Adding and sorting data in list result1
+            //Adding and sorting data in list resultSegregate
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance() != 0) {
-                    resultSegregate=resultSegregate + toString(0, 20,1);
+                    resultSegregate=resultSegregate + toString(offset,limit);
                     objectSearchRepository.deleteAll();
+                    objectSearchesStr.remove();
                 }
             }
         }
@@ -109,7 +114,7 @@ public class Searching {
                 objectSearch.setRelevance(objectSearchList.getRelevance());
                 objectSearchRepository.save(objectSearch);
             }
-        result="{\n   'result': true" + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
+        result="{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
         return result;
     }
     public String getSearch(String query,String site) throws IOException {
@@ -390,7 +395,7 @@ public class Searching {
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();
     }
-    public String toString(int offset, int limit, int count) {
+    public String toString(int offset, int limit) {
         String result="";
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
         List<ObjectSearch> objectSearches = new ArrayList<>();
