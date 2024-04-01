@@ -55,7 +55,6 @@ public class StatisticsServiceImpl implements StatisticsService {
              else  if (siteModelRepository.count() == 0) {
                  TotalStatistics total = new TotalStatistics();
                 total.setSites(sites.getSites().size());
-                //           }
                 total.setIndexing(true);
                 List<DetailedStatisticsItem> detailed = new ArrayList<>();
                 StatisticsData data = new StatisticsData();

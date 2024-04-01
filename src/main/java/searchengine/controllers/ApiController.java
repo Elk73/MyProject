@@ -16,6 +16,7 @@ import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
 import searchengine.services.Indexing;
 import searchengine.services.Searching;
+import searchengine.services.StatisticsResponseSearchService;
 import searchengine.utils.Response;
 import searchengine.utils.StatisticsService;
 import java.io.IOException;
@@ -35,12 +36,14 @@ public class ApiController {
     public String url;
     private final Indexing indexing;
     private final Searching searching;
+    private final StatisticsResponseSearchService statisticsResponseSearchService;
     public Site site;
-    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing,Searching searching) {
+    public ApiController(StatisticsService statisticsService, SitesList sites, Indexing indexing, Searching searching, StatisticsResponseSearchService statisticsResponseSearchService) {
         this.statisticsService = statisticsService;
         this.sites = sites;
         this.indexing = indexing;
         this.searching = searching;
+        this.statisticsResponseSearchService = statisticsResponseSearchService;
     }
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
@@ -68,13 +71,16 @@ public class ApiController {
        return "'result': true";
     }
     @GetMapping("/search")
-    public String search(String query,String site,int offset,int limit) throws IOException {
+    public ResponseEntity<StatisticsResponseSearchService> search(String query,String site,int offset,int limit) throws IOException {
         if ( query==null) {
-            return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
+//            return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
+            return new ResponseEntity("'result': false,\n Задан пустой поисковый запрос", HttpStatus.BAD_REQUEST);
         }else
         if (site==null){
-            return searching.getSearchSiteMap(query,offset,limit);
-        } else searching.getSearch(query,site);
-        return "{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit)+"\n    ]\n}";
+            return ResponseEntity.ok(searching.getSearchSiteMap(query,offset,limit));
+        } else
+ //           searching.getSearch(query,site);
+ //       return "{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit)+"\n    ]\n}";
+         return ResponseEntity.ok(searching.getSearch(query,site));
     }
 }

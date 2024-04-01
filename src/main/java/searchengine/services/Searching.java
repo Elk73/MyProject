@@ -32,19 +32,21 @@ public class Searching {
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
     private final Indexing indexing;
+    private final StatisticsResponseSearchService statisticsResponseSearchService;
 
     public String comment;
     static public Map listSideMap=new HashMap<>();
 
     public static Map<String,Integer> removeKeys=new HashMap<>();
 
-    public Searching(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing) {
+    public Searching(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing,StatisticsResponseSearchService statisticsResponseSearchService) {
         this.sites = sites;
         this.lemmaFinder = lemmaFinder;
         this.customComparator=customComparator;
         this.indexing=indexing;
+        this.statisticsResponseSearchService=statisticsResponseSearchService;
     }
-    public String getSearchSiteMap(String query,int offset,int limit) throws IOException {
+    public StatisticsResponseSearchService getSearchSiteMap(String query,int offset,int limit) throws IOException {
  //       int count=0;
         String result;
         String resultSegregate="";
@@ -114,10 +116,11 @@ public class Searching {
                 objectSearch.setRelevance(objectSearchList.getRelevance());
                 objectSearchRepository.save(objectSearch);
             }
-        result="{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
-        return result;
+//        result="{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
+       return statisticsResponseSearchService;
+ //       return result;
     }
-    public String getSearch(String query,String site) throws IOException {
+    public StatisticsResponseSearchService getSearch(String query,String site) throws IOException {
         siteModelRepository.deleteAll();
         pageRepository.deleteAll();
         objectSearchRepository.deleteAll();
@@ -210,8 +213,8 @@ public class Searching {
         // Query divide on words and writing on  list
         LinkedHashMap<Integer, String> substringIndices =new LinkedHashMap<>();
         LinkedList<String> substrings = new LinkedList<>();
-        String[] words = query.split("\\s+");
-        substrings.addAll(List.of(words));
+        String[] wordsQuery = query.split("\\s+");
+        substrings.addAll(List.of(wordsQuery));
 
 
         // Sort out Index and filling objectSearch (without Snippet)
@@ -233,19 +236,28 @@ public class Searching {
             if (doc ==null){
              text="406 Not Acceptable";
             }else {
-                text = htmlCleaner(String.valueOf(doc.body())).toLowerCase();
+                assert doc.parent() != null;
+      //          text = htmlCleaner(String.valueOf(doc.body())).toLowerCase();
+                text = htmlCleaner(String.valueOf(Objects.requireNonNull(doc.body().parent()).getElementsContainingText(query))).toLowerCase();
+ //               text = htmlCleaner(doc.body().wholeText()).toLowerCase();
+
+ //               text = htmlCleaner(String.valueOf(doc.body().getElementById("content"))).toLowerCase();
+      //          text = htmlCleaner(String.valueOf(doc.body().getElementsContainingText(query))).toLowerCase();
+      //          text = htmlCleaner(String.valueOf(doc.getElementById("content"))).toLowerCase();
+      //          text = htmlCleaner(String.valueOf(doc.getElementsByTag("strong"))).toLowerCase();
+     //           text = htmlCleaner(String.valueOf(doc.getElementsByTag("strong"))).toLowerCase();
             }
             String[] textList = text.split("\\s+");
             LinkedList<String> wordsFromText = new LinkedList<>();
             wordsFromText.addAll(List.of(textList));
-            LinkedList<String> substringLemmas=new LinkedList<>();
+            LinkedList<String> substringLemmasQuery=new LinkedList<>();
             lemmaFinder.lemmas.clear();
-            substringLemmas.addAll(lemmaFinder.collectLemmas(Arrays.toString(words)).keySet());
-            for (String substring : substringLemmas) {
+            substringLemmasQuery.addAll(lemmaFinder.collectLemmas(Arrays.toString(wordsQuery)).keySet());
+            for (String substring : substringLemmasQuery) {
                 for (String wordFromText : wordsFromText){
                     if (lemmaFinder.collectLemmas(wordFromText).containsKey(substring)) {
                         int index = text.indexOf(wordFromText);
-                        if (index != -1 && index != 0) {
+                        if (index != -1) {
                             substringIndices.put(index, substring);
                         }
                     }
@@ -280,7 +292,7 @@ public class Searching {
             }
 
             //Cut substring and writing on snippet
-            Optional<Integer> max=substringIndices.keySet().stream().max(Comparator.comparing(i->i.intValue()));
+            Optional<Integer> max=substringIndices.keySet().stream().max(Comparator.comparing(Integer::intValue));
             for (Integer index : substringIndices.keySet()) {
                 int start = index - 97;
                 int end = index + 87;
@@ -292,6 +304,8 @@ public class Searching {
                 String cutText="";
                 try {
                      cutText = text.substring(start, end);
+                     System.out.println("Text -  "+text+"\n");
+                     System.out.println("CutText -  "+cutText);
                 }catch (StringIndexOutOfBoundsException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -309,12 +323,16 @@ public class Searching {
                     }
                 }
                 objectSearch.setSnippet(snippetText);
+                objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+                objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
+                objectSearch.setRelevance(byLemmaId.getRank());
+                objectSearchRepository.save(objectSearch);
                 break;
             }
-            objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-            objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
-            objectSearch.setRelevance(byLemmaId.getRank());
-            objectSearchRepository.save(objectSearch);
+//            objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
+//            objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
+//            objectSearch.setRelevance(byLemmaId.getRank());
+//            objectSearchRepository.save(objectSearch);
         }
         //Creating copy of list from objectSearchRepository
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
@@ -390,7 +408,8 @@ public class Searching {
             objectSearchFalse.setRelevance(0);
             objectSearchRepository.save(objectSearchFalse);
         }
-        return "'result': true";
+ //       return "'result': true";
+        return statisticsResponseSearchService;
     }
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();
