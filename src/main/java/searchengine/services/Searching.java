@@ -36,6 +36,8 @@ public class Searching {
 
     public String comment;
     static public Map listSideMap=new HashMap<>();
+    static public int limitIn;
+    static public int offsetIn;
 
     public static Map<String,Integer> removeKeys=new HashMap<>();
 
@@ -47,16 +49,16 @@ public class Searching {
         this.statisticsResponseSearchService=statisticsResponseSearchService;
     }
     public StatisticsResponseSearchService getSearchSiteMap(String query,int offset,int limit) throws IOException {
- //       int count=0;
-        String result;
-        String resultSegregate="";
+        limitIn=limit;
+        offsetIn=offset;
+ //       String resultSegregate="";
         LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
         LinkedList<SiteModel> siteModelList = new LinkedList<>();
 
         for (int i = 0; i < sites.getSites().size(); i++) {
             Site site = sites.getSites().get(i);
             String url = site.getUrl();
-            getSearch(query,url);
+            getSearch(query,url,offset,limit);
 
             Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
             Iterable<ObjectSearch> oSRep = objectSearchRepository.findAll();
@@ -74,28 +76,27 @@ public class Searching {
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance()!=0) {
                     objectSearches.add(objectSearch);
-                    objectSearchesStr.add(objectSearch);
+//                    objectSearchesStr.add(objectSearch);
                 }
             }
-            //Creating ObjectSearch for using objectSearchRepository in searching.toString(offset,limit)
-            objectSearchRepository.deleteAll();
-            for (ObjectSearch objectSearchList : objectSearchesStr) {
-                ObjectSearch objectSearch = new ObjectSearch();
-                objectSearch.setUri(objectSearchList.getUri());
-                objectSearch.setTitle(objectSearchList.getTitle());
-                objectSearch.setSnippet(objectSearchList.getSnippet());
-                objectSearch.setRelevance(objectSearchList.getRelevance());
-                objectSearchRepository.save(objectSearch);
-//                count += objectSearchRepository.count();
-            }
-            //Adding and sorting data in list resultSegregate
-            for(ObjectSearch objectSearch:objectSearchesRep) {
-                if (objectSearch.getRelevance() != 0) {
-                    resultSegregate=resultSegregate + toString(offset,limit);
-                    objectSearchRepository.deleteAll();
-                    objectSearchesStr.remove();
-                }
-            }
+//            //Creating ObjectSearch for using objectSearchRepository in searching.toString(offset,limit)
+//            objectSearchRepository.deleteAll();
+//            for (ObjectSearch objectSearchList : objectSearchesStr) {
+//                ObjectSearch objectSearch = new ObjectSearch();
+//                objectSearch.setUri(objectSearchList.getUri());
+//                objectSearch.setTitle(objectSearchList.getTitle());
+//                objectSearch.setSnippet(objectSearchList.getSnippet());
+//                objectSearch.setRelevance(objectSearchList.getRelevance());
+//                objectSearchRepository.save(objectSearch);
+//            }
+//            //Adding and sorting data in list resultSegregate
+//            for(ObjectSearch objectSearch:objectSearchesRep) {
+//                if (objectSearch.getRelevance() != 0) {
+//                    resultSegregate=resultSegregate + toString(offset,limit);
+//                    objectSearchRepository.deleteAll();
+//                    objectSearchesStr.remove();
+//                }
+//            }
         }
         siteModelRepository.deleteAll();
         for (SiteModel siteModelL:siteModelList){
@@ -120,7 +121,9 @@ public class Searching {
        return statisticsResponseSearchService;
  //       return result;
     }
-    public StatisticsResponseSearchService getSearch(String query,String site) throws IOException {
+    public StatisticsResponseSearchService getSearch(String query,String site,int offset,int limit) throws IOException {
+        limitIn=limit;
+        offsetIn=offset;
         siteModelRepository.deleteAll();
         pageRepository.deleteAll();
         objectSearchRepository.deleteAll();

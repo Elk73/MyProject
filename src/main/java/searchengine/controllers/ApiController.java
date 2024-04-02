@@ -81,6 +81,6 @@ public class ApiController {
         } else
  //           searching.getSearch(query,site);
  //       return "{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit)+"\n    ]\n}";
-         return ResponseEntity.ok(searching.getSearch(query,site));
+         return ResponseEntity.ok(searching.getSearch(query,site,offset,limit));
     }
 }
