@@ -9,6 +9,7 @@ import searchengine.config.SitesList;
 import searchengine.model.*;
 import searchengine.parsers.*;
 import searchengine.repository.*;
+import searchengine.response.searching.StatisticsResponseFromSearchingDto;
 import searchengine.utils.supportServises.CustomComparator;
 import searchengine.utils.supportServises.LemmaFinder;
 import java.io.IOException;
@@ -48,10 +49,9 @@ public class Searching {
         this.indexing=indexing;
         this.statisticsResponseSearchService=statisticsResponseSearchService;
     }
-    public StatisticsResponseSearchService getSearchSiteMap(String query,int offset,int limit) throws IOException {
+    public StatisticsResponseFromSearchingDto getSearchSiteMap(String query, int offset, int limit) throws IOException {
         limitIn=limit;
         offsetIn=offset;
- //       String resultSegregate="";
         LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
         LinkedList<SiteModel> siteModelList = new LinkedList<>();
 
@@ -76,27 +76,8 @@ public class Searching {
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance()!=0) {
                     objectSearches.add(objectSearch);
-//                    objectSearchesStr.add(objectSearch);
                 }
             }
-//            //Creating ObjectSearch for using objectSearchRepository in searching.toString(offset,limit)
-//            objectSearchRepository.deleteAll();
-//            for (ObjectSearch objectSearchList : objectSearchesStr) {
-//                ObjectSearch objectSearch = new ObjectSearch();
-//                objectSearch.setUri(objectSearchList.getUri());
-//                objectSearch.setTitle(objectSearchList.getTitle());
-//                objectSearch.setSnippet(objectSearchList.getSnippet());
-//                objectSearch.setRelevance(objectSearchList.getRelevance());
-//                objectSearchRepository.save(objectSearch);
-//            }
-//            //Adding and sorting data in list resultSegregate
-//            for(ObjectSearch objectSearch:objectSearchesRep) {
-//                if (objectSearch.getRelevance() != 0) {
-//                    resultSegregate=resultSegregate + toString(offset,limit);
-//                    objectSearchRepository.deleteAll();
-//                    objectSearchesStr.remove();
-//                }
-//            }
         }
         siteModelRepository.deleteAll();
         for (SiteModel siteModelL:siteModelList){
@@ -117,11 +98,9 @@ public class Searching {
                 objectSearch.setRelevance(objectSearchList.getRelevance());
                 objectSearchRepository.save(objectSearch);
             }
-//        result="{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+resultSegregate+"\n    ]\n}";
-       return statisticsResponseSearchService;
- //       return result;
+       return statisticsResponseSearchService.getStatisticsSearch();
     }
-    public StatisticsResponseSearchService getSearch(String query,String site,int offset,int limit) throws IOException {
+    public StatisticsResponseFromSearchingDto getSearch(String query,String site,int offset,int limit) throws IOException {
         limitIn=limit;
         offsetIn=offset;
         siteModelRepository.deleteAll();
@@ -240,15 +219,8 @@ public class Searching {
              text="406 Not Acceptable";
             }else {
                 assert doc.parent() != null;
-      //          text = htmlCleaner(String.valueOf(doc.body())).toLowerCase();
+                //          text = htmlCleaner(String.valueOf(doc.body())).toLowerCase();
                 text = htmlCleaner(String.valueOf(Objects.requireNonNull(doc.body().parent()).getElementsContainingText(query))).toLowerCase();
- //               text = htmlCleaner(doc.body().wholeText()).toLowerCase();
-
- //               text = htmlCleaner(String.valueOf(doc.body().getElementById("content"))).toLowerCase();
-      //          text = htmlCleaner(String.valueOf(doc.body().getElementsContainingText(query))).toLowerCase();
-      //          text = htmlCleaner(String.valueOf(doc.getElementById("content"))).toLowerCase();
-      //          text = htmlCleaner(String.valueOf(doc.getElementsByTag("strong"))).toLowerCase();
-     //           text = htmlCleaner(String.valueOf(doc.getElementsByTag("strong"))).toLowerCase();
             }
             String[] textList = text.split("\\s+");
             LinkedList<String> wordsFromText = new LinkedList<>();
@@ -332,10 +304,6 @@ public class Searching {
                 objectSearchRepository.save(objectSearch);
                 break;
             }
-//            objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-//            objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
-//            objectSearch.setRelevance(byLemmaId.getRank());
-//            objectSearchRepository.save(objectSearch);
         }
         //Creating copy of list from objectSearchRepository
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
@@ -362,12 +330,6 @@ public class Searching {
             }
             relevance = 0;
         }
-        //****удаление страниц с одним и тем же адресом , после суммирования Relevance, сиквестирование списка
-//        for (int y=0;y<objectSearches.size();y++) {
-//            if (objectSearches.get(y).getUri().equals("")){
-//                objectSearches.remove(y);
-//            }
- //       }
         //Searching maximum from  absolut Relevance, calculation and recording relative Relevance
         Optional<ObjectSearch> max=objectSearches.stream().max(Comparator.comparing(o -> o.getRelevance()));
         if (max.isPresent()) {
@@ -406,54 +368,14 @@ public class Searching {
             ObjectSearch objectSearchFalse=new ObjectSearch();
             objectSearchFalse.setUri(site);
             objectSearchFalse.setTitle(name);
-            objectSearchFalse.setSnippet("'result': false,\n" +
-                    "\t        'error':404 Not Found");
+            objectSearchFalse.setSnippet("'result': false," +
+                    "\n       'error':404 Not Found");
             objectSearchFalse.setRelevance(0);
             objectSearchRepository.save(objectSearchFalse);
         }
- //       return "'result': true";
-        return statisticsResponseSearchService;
+        return statisticsResponseSearchService.getStatisticsSearch();
     }
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();
-    }
-    public String toString(int offset, int limit) {
-        String result="";
-        Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
-        List<ObjectSearch> objectSearches = new ArrayList<>();
-        for(ObjectSearch objectSearch:objectSearchesRep) {
-            objectSearches.add(objectSearch);
-        }
-        Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
-        for(SiteModel siteModel:siteModelRep) {
-            if (limit==0){
-                limit=20;
-            }
-            if (limit>objectSearches.size()){
-                limit=objectSearches.size();
-            }
-            if (offset>limit){
-                offset=0;
-            }
-            if (offset>0){
-                limit=limit-offset;
-            }
-            int limitToString=1;
-            for (int j=offset;j<=objectSearches.size();j++) {
-                if (limitToString<=limit) {
-                    result=result+
-                            "\n        {" +
-                            "\n            'site': " + siteModel.getUrl() + "," +
-                            "\n            'siteName': " + siteModel.getName() + "," +
-                            "\n            'uri': " + objectSearches.get(j).getUri() +
-                            "\n            'title' :" + objectSearches.get(j).getTitle() + "," +
-                            "\n            'snippet' :" + objectSearches.get(j).getSnippet() + "," +
-                            "\n            'relevance' :" + objectSearches.get(j).getRelevance() +
-                            "\n        },";
-                }
-                limitToString=limitToString+1;
-            }
-        }
-        return result;
     }
 }

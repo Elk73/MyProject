@@ -32,8 +32,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
 
-        List<ObjectSearch>objectSearches=new ArrayList<>();
-        objectSearches.addAll((Collection<? extends ObjectSearch>) objectSearchesRep);
+        List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
         for(SiteModel siteModel:siteModels) {
             offset=Searching.offsetIn;
             limit=Searching.limitIn;
@@ -52,8 +51,6 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             int limitToString=1;
             for (int j=offset;j<objectSearches.size();j++) {
                 if (limitToString<=limit) {
-  //                  for (SiteModel siteModel:siteModels) {
-  //                      for (ObjectSearch objectSearch : objectSearchesRep) {
                             TotalSearchingDto totalSearchingDto=new TotalSearchingDto();
                             totalSearchingDto.setSites(siteModel.getUrl());
                             totalSearchingDto.setSiteName(siteModel.getName());
@@ -62,8 +59,6 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
                             totalSearchingDto.setSnippet(objectSearches.get(j).getSnippet());
                             totalSearchingDto.setRelevance(objectSearches.get(j).getRelevance());
                             totalSearchingDtos.add(totalSearchingDto);
- //                       }
- //                   }
                 }
                 limitToString=limitToString+1;
             }
@@ -71,24 +66,6 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         statisticsResponseFromSearchingDto.setResult(true);
         statisticsResponseFromSearchingDto.setCount(totalSearchingDtos.size());
         statisticsResponseFromSearchingDto.setData(totalSearchingDtos);
-
-
-//        for (SiteModel siteModel:siteModels) {
-//            for (ObjectSearch objectSearch : objectSearchesRep) {
-//                TotalSearchingDto totalSearchingDto=new TotalSearchingDto();
-//                totalSearchingDto.setSites(siteModel.getUrl());
-//                totalSearchingDto.setSiteName(siteModel.getName());
-//                totalSearchingDto.setUri(objectSearch.getUri());
-//                totalSearchingDto.setTitle(objectSearch.getTitle());
-//                totalSearchingDto.setSnippet(objectSearch.getSnippet());
-//                totalSearchingDto.setRelevance(objectSearch.getRelevance());
-//                totalSearchingDtos.add(totalSearchingDto);
-//            }
-//        }
-//            statisticsResponseFromSearchingDto.setResult(true);
-//            statisticsResponseFromSearchingDto.setCount(totalSearchingDtos.size());
-//            statisticsResponseFromSearchingDto.setData(totalSearchingDtos);
-
         return statisticsResponseFromSearchingDto;
     }
 }

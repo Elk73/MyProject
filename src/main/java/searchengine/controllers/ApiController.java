@@ -14,6 +14,7 @@ import searchengine.parsers.ControllerThread;
 import searchengine.repository.ObjectSearchRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteModelRepository;
+import searchengine.response.searching.StatisticsResponseFromSearchingDto;
 import searchengine.services.Indexing;
 import searchengine.services.Searching;
 import searchengine.services.StatisticsResponseSearchService;
@@ -71,16 +72,13 @@ public class ApiController {
        return "'result': true";
     }
     @GetMapping("/search")
-    public ResponseEntity<StatisticsResponseSearchService> search(String query,String site,int offset,int limit) throws IOException {
+    public ResponseEntity<StatisticsResponseFromSearchingDto> search(String query, String site, int offset, int limit) throws IOException {
         if ( query==null) {
-//            return "'result': false,\n" + "400 Bad Request \nЗадан пустой поисковый запрос";
             return new ResponseEntity("'result': false,\n Задан пустой поисковый запрос", HttpStatus.BAD_REQUEST);
         }else
         if (site==null){
             return ResponseEntity.ok(searching.getSearchSiteMap(query,offset,limit));
         } else
- //           searching.getSearch(query,site);
- //       return "{\n   'result': true," + "\n   'count': " +objectSearchRepository.count()+ "," + "\n    'data': ["+searching.toString(offset,limit)+"\n    ]\n}";
          return ResponseEntity.ok(searching.getSearch(query,site,offset,limit));
     }
 }
