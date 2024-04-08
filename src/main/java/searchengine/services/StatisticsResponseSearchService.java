@@ -64,7 +64,8 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             }
         }
         statisticsResponseFromSearchingDto.setResult(true);
-        statisticsResponseFromSearchingDto.setCount(totalSearchingDtos.size());
+ //       statisticsResponseFromSearchingDto.setCount(totalSearchingDtos.size());
+        statisticsResponseFromSearchingDto.setCount(objectSearches.size());
         statisticsResponseFromSearchingDto.setData(totalSearchingDtos);
         return statisticsResponseFromSearchingDto;
     }

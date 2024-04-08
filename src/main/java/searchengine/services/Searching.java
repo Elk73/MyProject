@@ -58,7 +58,7 @@ public class Searching {
         for (int i = 0; i < sites.getSites().size(); i++) {
             Site site = sites.getSites().get(i);
             String url = site.getUrl();
-            getSearch(query,url,offset,limit);
+            getSearch(query,url,offsetIn,limitIn);
 
             Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
             Iterable<ObjectSearch> oSRep = objectSearchRepository.findAll();
@@ -72,7 +72,7 @@ public class Searching {
             }
             //Creating copy of list from objectSearchRepository
             Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
-            LinkedList<ObjectSearch> objectSearchesStr = new LinkedList<>();
+ //           LinkedList<ObjectSearch> objectSearchesStr = new LinkedList<>();
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance()!=0) {
                     objectSearches.add(objectSearch);
