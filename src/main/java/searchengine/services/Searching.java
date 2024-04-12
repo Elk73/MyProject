@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 @Service
 public class Searching {
     @Autowired
@@ -41,6 +40,9 @@ public class Searching {
     static public int offsetIn;
 
     public static Map<String,Integer> removeKeys=new HashMap<>();
+//    public static List<ObjectSearch>listMapResponse=new ArrayList<>();
+    public static String siteNameResponse;
+    public static Map<String,List<ObjectSearch>> mapResponse=new HashMap<>();
 
     public Searching(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing,StatisticsResponseSearchService statisticsResponseSearchService) {
         this.sites = sites;
@@ -49,7 +51,8 @@ public class Searching {
         this.indexing=indexing;
         this.statisticsResponseSearchService=statisticsResponseSearchService;
     }
-    public StatisticsResponseFromSearchingDto getSearchSiteMap(String query, int offset, int limit) throws IOException {
+    public StatisticsResponseFromSearchingDto getSearchSiteMap(String query, int offset, int limit)throws NoSuchElementException{
+        mapResponse.clear();
         limitIn=limit;
         offsetIn=offset;
         LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
@@ -58,27 +61,37 @@ public class Searching {
         for (int i = 0; i < sites.getSites().size(); i++) {
             Site site = sites.getSites().get(i);
             String url = site.getUrl();
-            getSearch(query,url,offsetIn,limitIn);
-
+            getSearches(query,url);
             Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
             Iterable<ObjectSearch> oSRep = objectSearchRepository.findAll();
             for (SiteModel siteModel:siteModelRep){
                 for(ObjectSearch oS :oSRep) {
                     if (oS.getRelevance()!=0) {
                         siteModelList.add(siteModel);
+                        siteNameResponse=siteModel.getName();
                         break;
                     }
                 }
             }
             //Creating copy of list from objectSearchRepository
+            List<ObjectSearch>listMapResponse=new ArrayList<>();
             Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
- //           LinkedList<ObjectSearch> objectSearchesStr = new LinkedList<>();
             for(ObjectSearch objectSearch:objectSearchesRep) {
                 if (objectSearch.getRelevance()!=0) {
                     objectSearches.add(objectSearch);
+                    listMapResponse.add(objectSearch);
+                    mapResponse.put(siteNameResponse,listMapResponse);
                 }
             }
         }
+        for (String m:mapResponse.keySet()){
+            List<ObjectSearch> listResponse = new ArrayList<>(Searching.mapResponse.get(m));
+            for (ObjectSearch list : listResponse) {
+                System.out.println("Print key - " +m+"\n"+"Print list.getUri() - " + list.getUri()+"\n"+"Print list.getTitle() - "
+                        + list.getTitle()+"\n"+"Print list.getSnippet() - " + list.getSnippet()+"\n");
+            }
+        }
+
         siteModelRepository.deleteAll();
         for (SiteModel siteModelL:siteModelList){
             SiteModel siteModel = new SiteModel();
@@ -100,9 +113,13 @@ public class Searching {
             }
        return statisticsResponseSearchService.getStatisticsSearch();
     }
-    public StatisticsResponseFromSearchingDto getSearch(String query,String site,int offset,int limit) throws IOException {
+    public StatisticsResponseFromSearchingDto getSearch(String query,String site,int offset,int limit){
         limitIn=limit;
         offsetIn=offset;
+        getSearches(query,site);
+        return statisticsResponseSearchService.getStatisticsSearch();
+    }
+    public  Boolean getSearches(String query,String site){
         siteModelRepository.deleteAll();
         pageRepository.deleteAll();
         objectSearchRepository.deleteAll();
@@ -125,8 +142,7 @@ public class Searching {
         siteModelRepository.save(siteModel);
         lemmaRepository.deleteAll();
         indexRepository.deleteAll();
-        Map<String, Integer> lemmasSearch=new HashMap<>();
-        lemmasSearch.putAll(lemmaFinder.collectLemmas(query));
+        Map<String, Integer> lemmasSearch = new HashMap<>(lemmaFinder.collectLemmas(query));
         lemmaFinder.lemmas.clear();
         for (int j = 0; j < listSideMap.size(); j++) {
             Page page = new Page();
@@ -135,11 +151,9 @@ public class Searching {
                 page.setPath((String) listSideMap.get(j));
                 page.setContent((String) LinkExecutor.outHTML.get(j));
                 pageRepository.save(page);
-                TreeMap<String, Integer> unsortedMap=new TreeMap<>();
-                unsortedMap.putAll(lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent())));
+            TreeMap<String, Integer> unsortedMap = new TreeMap<>(lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent())));
                 Map<String, Integer> sortedMap = customComparator.valueSort(unsortedMap);
-                LinkedHashMap<String, Integer> collectLemmas=new LinkedHashMap<>();
-                collectLemmas.putAll(sortedMap);
+            LinkedHashMap<String, Integer> collectLemmas = new LinkedHashMap<>(sortedMap);
                 for (String key : collectLemmas.keySet()) {
                     if (collectLemmas.get(key)>8) {
                         removeKeys.put(key,collectLemmas.get(key));
@@ -223,11 +237,9 @@ public class Searching {
                 text = htmlCleaner(String.valueOf(Objects.requireNonNull(doc.body().parent()).getElementsContainingText(query))).toLowerCase();
             }
             String[] textList = text.split("\\s+");
-            LinkedList<String> wordsFromText = new LinkedList<>();
-            wordsFromText.addAll(List.of(textList));
-            LinkedList<String> substringLemmasQuery=new LinkedList<>();
+            LinkedList<String> wordsFromText = new LinkedList<>(List.of(textList));
             lemmaFinder.lemmas.clear();
-            substringLemmasQuery.addAll(lemmaFinder.collectLemmas(Arrays.toString(wordsQuery)).keySet());
+            LinkedList<String> substringLemmasQuery = new LinkedList<>(lemmaFinder.collectLemmas(Arrays.toString(wordsQuery)).keySet());
             for (String substring : substringLemmasQuery) {
                 for (String wordFromText : wordsFromText){
                     if (lemmaFinder.collectLemmas(wordFromText).containsKey(substring)) {
@@ -347,7 +359,7 @@ public class Searching {
                         return 1;
                     else return -1;
                 })
-                .collect(Collectors.toList());
+                .toList();
         objectSearches.clear();
         objectSearches.addAll(sortedList);
         //Recording on objectSearchRepository final objectSearches
@@ -373,7 +385,7 @@ public class Searching {
             objectSearchFalse.setRelevance(0);
             objectSearchRepository.save(objectSearchFalse);
         }
-        return statisticsResponseSearchService.getStatisticsSearch();
+        return true;
     }
     public String htmlCleaner(String html) {
         return Jsoup.parse(html).text();

@@ -18,12 +18,12 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru
-      name: PlayBack.ru
+    #- url: https://www.playback.ru
+    #  name: PlayBack.ru
     - url: https://volochek.life
       name: Volochek.ru
-    - url: https://www.lenta.ru
-      name: Лента.ру
+    #- url: https://www.lenta.ru
+    #  name: Лента.ру
     #    - url: https://www.skillbox.ru
     #      name: skillbox.ру
     #    - url: https://dombulgakova.ru
@@ -32,10 +32,10 @@ indexing-settings:
       name: DimonVideo.ru
     - url: http://radiomv.ru
       name: Radiomv.ru
-    #    - url: https://ipfran.ru
-    #      name: Ipfran.ru
-    #    - url: https://nikoartgallery.com
-    #      name: Nikoartgallery.com
+    #- url: https://ipfran.ru
+    #  name: Ipfran.ru
+    #- url: https://nikoartgallery.com
+    #  name: Nikoartgallery.com
     #    - url: https://et-cetera.ru
     #      name: Et-cetera.ru
     #    - url: https://www.lutherancathedral.ru

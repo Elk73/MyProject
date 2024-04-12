@@ -1,16 +1,29 @@
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
+import searchengine.model.ObjectSearch;
 import searchengine.utils.supportServises.LemmaFinder;
 import org.apache.commons.io.FilenameUtils;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static String text="Каждый водитель мог бы быть сдержаннее и внимательнее, что увеличит его значимость у окружающих и повысит самооценку водителя";
 //    public static List<String>cleanFromPartOffSpeech=new ArrayList<>();
     public static String textHtml="<a href=\"/catalog/1308.html\">Чехлы для смартфонов Samsung</a>";
-
+    public static List<String>list=List.of("а","б","в");
+    public static List<String>list2=List.of("г","д","е");
+    public static Map<String,List<String>> mapResponse=new HashMap<>();
     public static void main(String[] args) throws IOException {
+        mapResponse.put("one",list);
+        mapResponse.put("tue",list2);
+        for (String m:mapResponse.keySet()){
+            System.out.println("mapResponse - "+mapResponse.get(m)+"\n");
+        }
+//        System.out.println("mapResponse - "+mapResponse.get("one"));
+
+
         LuceneMorphology luceneMorph = new RussianLuceneMorphology();
         List<String> wordBaseForms = luceneMorph.getNormalForms("белка");
         wordBaseForms.forEach(System.out::println);

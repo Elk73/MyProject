@@ -9,7 +9,6 @@ import searchengine.repository.*;
 import searchengine.utils.Response;
 import searchengine.utils.supportServises.CustomComparator;
 import searchengine.utils.supportServises.LemmaFinder;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -74,7 +73,7 @@ public class Indexing {
                 SiteModel siteModel = new SiteModel();
                 listSideMap.clear();
                 getFinalSiteMap(siteMap);
-                if (ConditionStopIndexing.isAfterStop() == true) {
+                if (ConditionStopIndexing.isAfterStop()) {
                     comment = "Индексация остановлена пользователем";
                     saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
                 } else if (listSideMap.size() <= 1) {
@@ -192,7 +191,7 @@ public class Indexing {
         final String URL_REGEX =
                 "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
                         "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)" +
-                        "([).!';/?:,][[:blank:]])?$";
+                        "([).!';/?:,][:blank:])?$";
          final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
             if (url == null) {
                 return false;

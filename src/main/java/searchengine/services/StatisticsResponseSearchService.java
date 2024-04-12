@@ -24,47 +24,77 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
     static int limit;
     static int offset;
     @Override
-
     public StatisticsResponseFromSearchingDto getStatisticsSearch() {
-
         StatisticsResponseFromSearchingDto statisticsResponseFromSearchingDto=new StatisticsResponseFromSearchingDto();
         Iterable<SiteModel> siteModels = siteModelRepository.findAll();
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
-
         List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
-        for(SiteModel siteModel:siteModels) {
-            offset=Searching.offsetIn;
-            limit=Searching.limitIn;
-            if (limit==0){
-                limit=20;
+        offset=Searching.offsetIn;
+ //       limit= Searching.limitIn;
+        limit= (int) Math.abs(Searching.limitIn/siteModelRepository.count());
+        System.out.println("offsetIn и limitIn - "+offset+" - "+limit);
+        if (limit==0){
+            limit=20;
+        }
+        if (limit>objectSearches.size()){
+            limit=objectSearches.size();
+        }
+        if (offset>limit){
+            offset=0;
+        }
+        if (offset>0){
+            limit=limit-offset;
+        }
+        if(siteModelRepository.count()>1){
+            System.out.println("siteModelRepository.count()>1");
+            for(SiteModel siteModel:siteModels) {
+                int count=1;
+                    System.out.println("Количество заходов  - " +count );
+                        System.out.println("siteModel.getName()- " + siteModel.getName());
+     //                       System.out.println("containsKey(siteModel.getName() - "+Searching.mapResponse.containsKey(siteModel.getName()));
+                            for (String m:Searching.mapResponse.keySet()) {
+                                System.out.println("Ключ в  mapResponse- " + m);
+                                List<ObjectSearch> listResponse = new ArrayList<>(Searching.mapResponse.get(m));
+                                System.out.println("listResponse.size - " + listResponse.size());
+                                if (m.equals(siteModel.getName())) {
+                                    int limitToString=1;
+                                        for (int i=offset;i<listResponse.size();i++) {
+                                            if (limitToString <= limit ) {
+                                                TotalSearchingDto totalSearchingDto = new TotalSearchingDto();
+                                                totalSearchingDto.setSites(siteModel.getUrl());
+                                                totalSearchingDto.setSiteName(siteModel.getName());
+                                                System.out.println("list.getUri() - " + listResponse.get(i).getUri());
+                                                totalSearchingDto.setUri(listResponse.get(i).getUri());
+                                                totalSearchingDto.setTitle(listResponse.get(i).getTitle());
+                                                totalSearchingDto.setSnippet(listResponse.get(i).getSnippet());
+                                                totalSearchingDto.setRelevance(listResponse.get(i).getRelevance());
+                                                totalSearchingDtos.add(totalSearchingDto);
+                                            }
+                                            limitToString=limitToString+1;
+                                        }
+                                }
+                            }
             }
-            if (limit>objectSearches.size()){
-                limit=objectSearches.size();
-            }
-            if (offset>limit){
-                offset=0;
-            }
-            if (offset>0){
-                limit=limit-offset;
-            }
-            int limitToString=1;
-            for (int j=offset;j<objectSearches.size();j++) {
-                if (limitToString<=limit) {
-                            TotalSearchingDto totalSearchingDto=new TotalSearchingDto();
-                            totalSearchingDto.setSites(siteModel.getUrl());
-                            totalSearchingDto.setSiteName(siteModel.getName());
-                            totalSearchingDto.setUri(objectSearches.get(j).getUri());
-                            totalSearchingDto.setTitle(objectSearches.get(j).getTitle());
-                            totalSearchingDto.setSnippet(objectSearches.get(j).getSnippet());
-                            totalSearchingDto.setRelevance(objectSearches.get(j).getRelevance());
-                            totalSearchingDtos.add(totalSearchingDto);
+        }else {
+            for (SiteModel siteModel : siteModels) {
+                int limitToString = 1;
+                for (int j = offset; j < objectSearches.size(); j++) {
+                    if (limitToString <= limit ) {
+                        TotalSearchingDto totalSearchingDto = new TotalSearchingDto();
+                        totalSearchingDto.setSites(siteModel.getUrl());
+                        totalSearchingDto.setSiteName(siteModel.getName());
+                        totalSearchingDto.setUri(objectSearches.get(j).getUri());
+                        totalSearchingDto.setTitle(objectSearches.get(j).getTitle());
+                        totalSearchingDto.setSnippet(objectSearches.get(j).getSnippet());
+                        totalSearchingDto.setRelevance(objectSearches.get(j).getRelevance());
+                        totalSearchingDtos.add(totalSearchingDto);
+                    }
+                    limitToString = limitToString + 1;
                 }
-                limitToString=limitToString+1;
             }
         }
         statisticsResponseFromSearchingDto.setResult(true);
- //       statisticsResponseFromSearchingDto.setCount(totalSearchingDtos.size());
         statisticsResponseFromSearchingDto.setCount(objectSearches.size());
         statisticsResponseFromSearchingDto.setData(totalSearchingDtos);
         return statisticsResponseFromSearchingDto;
