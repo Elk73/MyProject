@@ -18,8 +18,8 @@ spring:
 
 indexing-settings:
   sites:
-    #- url: https://www.playback.ru
-    #  name: PlayBack.ru
+    - url: https://www.playback.ru
+      name: PlayBack.ru
     - url: https://volochek.life
       name: Volochek.ru
     #- url: https://www.lenta.ru
@@ -28,10 +28,10 @@ indexing-settings:
     #      name: skillbox.ру
     #    - url: https://dombulgakova.ru
     #      name: Dom_Bulgakova.ru
-    - url: https://dimonvideo.ru
-      name: DimonVideo.ru
-    - url: http://radiomv.ru
-      name: Radiomv.ru
+    #- url: https://dimonvideo.ru
+    #  name: DimonVideo.ru
+    #- url: http://radiomv.ru
+    #  name: Radiomv.ru
     #- url: https://ipfran.ru
     #  name: Ipfran.ru
     #- url: https://nikoartgallery.com

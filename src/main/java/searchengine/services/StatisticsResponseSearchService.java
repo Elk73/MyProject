@@ -31,8 +31,11 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
         List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
         offset=Searching.offsetIn;
- //       limit= Searching.limitIn;
-        limit= (int) Math.abs(Searching.limitIn/siteModelRepository.count());
+        try {
+            limit= (int) Math.abs(Searching.limitIn/siteModelRepository.count());
+        }catch(ArithmeticException e) {
+            e.printStackTrace();
+        }
         System.out.println("offsetIn и limitIn - "+offset+" - "+limit);
         if (limit==0){
             limit=20;

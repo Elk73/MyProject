@@ -51,7 +51,8 @@ public class Searching {
         this.indexing=indexing;
         this.statisticsResponseSearchService=statisticsResponseSearchService;
     }
-    public StatisticsResponseFromSearchingDto getSearchSiteMap(String query, int offset, int limit)throws NoSuchElementException{
+    public StatisticsResponseFromSearchingDto getSearchSiteMap(String query, int offset, int limit){
+        //throws NoSuchElementException
         mapResponse.clear();
         limitIn=limit;
         offsetIn=offset;
