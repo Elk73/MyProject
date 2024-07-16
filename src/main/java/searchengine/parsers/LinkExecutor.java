@@ -1,7 +1,4 @@
 package searchengine.parsers;
-
-import java.io.File;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.RecursiveTask;
 import java.io.IOException;

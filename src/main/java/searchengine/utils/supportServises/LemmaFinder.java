@@ -22,7 +22,6 @@ public class LemmaFinder {
 
 
     public static LemmaFinder getInstance() throws IOException {
- //       LuceneMorphology morphology= new RussianLuceneMorphology();
         return new LemmaFinder();
     }
     /**

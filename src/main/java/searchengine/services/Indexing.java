@@ -39,6 +39,8 @@ public class Indexing {
     public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
+    static public Map outHTMLMapForSearches =new HashMap<>();
+    static public Map<String,List<String>> listSideMapForSearches =new HashMap<>();
     public static int frequency=0;
     public Site site;
 
@@ -51,18 +53,21 @@ public class Indexing {
     public  Response startIndexing(){
         ControllerThread.setIsRun(true);
         ConditionStopIndexing.setIsStop(false);
-        // Run a task specified by a Runnable Object asynchronously.
+        /** Run a task specified by a Runnable Object asynchronously. */
         CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 throw new IllegalStateException(e);
             }
-            System.out.println("I'll run in a separate thread than the main thread.!!!!!!!!!     !!!!!!!!!    !!!!!!!!");
             siteModelRepository.deleteAll();
             pageRepository.deleteAll();
             lemmaRepository.deleteAll();
             indexRepository.deleteAll();
+
+            listSideMapForSearches.clear();
+            outHTMLMapForSearches.clear();
+
             for (int i = 0; i < sites.getSites().size(); i++) {
                 site = sites.getSites().get(i);
                 url = site.getUrl();
@@ -73,6 +78,20 @@ public class Indexing {
                 SiteModel siteModel = new SiteModel();
                 listSideMap.clear();
                 getFinalSiteMap(siteMap);
+                List<String>listForMap=new ArrayList<>();
+                List<String>listOutHTML=new ArrayList<>();
+                for (int j=0;j<listSideMap.size();j++){
+                listForMap.add((String) listSideMap.get(j));
+                    listOutHTML.add((String) LinkExecutor.outHTML.get(j));
+                }
+                String name="";
+                if ( url.matches("https://"+"www.[a-zA-Z_-]*.[a-zA-Z_-]*")){
+                 name=url.substring(12);
+                }else if (url.matches("https://"+"[a-zA-Z_-]*.[a-zA-Z_-]*")){
+                    name=url.substring(8);
+                }
+                listSideMapForSearches.put(name,listForMap);
+                outHTMLMapForSearches.put(name,listOutHTML);
                 if (ConditionStopIndexing.isAfterStop()) {
                     comment = "Индексация остановлена пользователем";
                     saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
@@ -172,11 +191,14 @@ public class Indexing {
             if (!listSideMap.containsValue(encoding))
             {
                 listSideMap.put(i,encoding+"\n");
+                System.out.println("Encoding - "+encoding);
             }
             i++;
         }
+
         System.out.println("ListSideMap.size.()- "+listSideMap.size());
         System.out.println("getFinalSiteMap - "+listSideMap);
+
         return String.valueOf(listSideMap);
     }
     public void saveSiteModelRepository(String url,String comment,SiteModel siteModel,StatusType statusType){

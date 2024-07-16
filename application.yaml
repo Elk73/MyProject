@@ -20,24 +20,24 @@ indexing-settings:
   sites:
     - url: https://www.playback.ru
       name: PlayBack.ru
-    - url: https://volochek.life
-      name: Volochek.ru
+    #- url: https://volochek.life
+    # name: Volochek.ru
     #- url: https://www.lenta.ru
-    #  name: Лента.ру
+    # name: Лента.ру
     #    - url: https://www.skillbox.ru
     #      name: skillbox.ру
-    #    - url: https://dombulgakova.ru
-    #      name: Dom_Bulgakova.ru
+    - url: https://dombulgakova.ru
+      name: Dom_Bulgakova.ru
     #- url: https://dimonvideo.ru
     #  name: DimonVideo.ru
     #- url: http://radiomv.ru
     #  name: Radiomv.ru
     #- url: https://ipfran.ru
     #  name: Ipfran.ru
-    #- url: https://nikoartgallery.com
-    #  name: Nikoartgallery.com
-    #    - url: https://et-cetera.ru
-    #      name: Et-cetera.ru
+    - url: https://nikoartgallery.com
+      name: Nikoartgallery.com
+    - url: https://et-cetera.ru
+      name: Et-cetera.ru
     #    - url: https://www.lutherancathedral.ru
     #      name: Lutherancathedral.ru
     - url: https://www.svetlovka.ru

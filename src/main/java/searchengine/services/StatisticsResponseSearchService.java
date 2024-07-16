@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.model.ObjectSearch;
 import searchengine.model.SiteModel;
@@ -31,12 +32,15 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
         List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
         offset=Searching.offsetIn;
-        try {
-            limit= (int) Math.abs(Searching.limitIn/siteModelRepository.count());
+        if (Searching.limitIn==0||Searching.limitIn==1){
+            Searching.limitIn=20;
+            try {
+            limit= (int) Math.abs(Searching.limitIn/(Searching.copySiteModel.size()-1));
         }catch(ArithmeticException e) {
             e.printStackTrace();
+            return (StatisticsResponseFromSearchingDto) ResponseEntity.noContent();
         }
-        System.out.println("offsetIn и limitIn - "+offset+" - "+limit);
+        }
         if (limit==0){
             limit=20;
         }
@@ -49,17 +53,11 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         if (offset>0){
             limit=limit-offset;
         }
-        if(siteModelRepository.count()>1){
+        if(siteModelRepository.count()>1||Searching.copySiteModel.size()>1){
             System.out.println("siteModelRepository.count()>1");
             for(SiteModel siteModel:siteModels) {
-                int count=1;
-                    System.out.println("Количество заходов  - " +count );
-                        System.out.println("siteModel.getName()- " + siteModel.getName());
-     //                       System.out.println("containsKey(siteModel.getName() - "+Searching.mapResponse.containsKey(siteModel.getName()));
                             for (String m:Searching.mapResponse.keySet()) {
-                                System.out.println("Ключ в  mapResponse- " + m);
                                 List<ObjectSearch> listResponse = new ArrayList<>(Searching.mapResponse.get(m));
-                                System.out.println("listResponse.size - " + listResponse.size());
                                 if (m.equals(siteModel.getName())) {
                                     int limitToString=1;
                                         for (int i=offset;i<listResponse.size();i++) {
@@ -80,6 +78,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
                             }
             }
         }else {
+            System.out.println("siteModelRepository.count()<<<<<1");
             for (SiteModel siteModel : siteModels) {
                 int limitToString = 1;
                 for (int j = offset; j < objectSearches.size(); j++) {
