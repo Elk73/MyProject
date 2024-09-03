@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.model.ObjectSearch;
-import searchengine.model.SiteModel;
+import searchengine.model.SiteModelSearch;
 import searchengine.repository.ObjectSearchRepository;
-import searchengine.repository.SiteModelRepository;
+import searchengine.repository.SiteModelSearchRepository;
 import searchengine.response.searching.StatisticsResponseFromSearchingDto;
 import searchengine.response.searching.TotalSearchingDto;
 import searchengine.utils.StatisticsServiceSearch;
@@ -21,13 +21,13 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
     @Autowired
     private ObjectSearchRepository objectSearchRepository;
     @Autowired
-    private SiteModelRepository siteModelRepository;
+    private SiteModelSearchRepository siteModelSearchRepository;
     static int limit;
     static int offset;
     @Override
     public StatisticsResponseFromSearchingDto getStatisticsSearch() {
         StatisticsResponseFromSearchingDto statisticsResponseFromSearchingDto=new StatisticsResponseFromSearchingDto();
-        Iterable<SiteModel> siteModels = siteModelRepository.findAll();
+        Iterable<SiteModelSearch> siteModels = siteModelSearchRepository.findAll();
         Iterable<ObjectSearch> objectSearchesRep = objectSearchRepository.findAll();
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
         List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
@@ -35,7 +35,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         if (Searching.limitIn==0||Searching.limitIn==1){
             Searching.limitIn=20;
             try {
-            limit= (int) Math.abs(Searching.limitIn/(Searching.copySiteModel.size()-1));
+            limit= (int) Math.abs(Searching.limitIn/(Searching.copySiteModel.size()));
         }catch(ArithmeticException e) {
             e.printStackTrace();
             return (StatisticsResponseFromSearchingDto) ResponseEntity.noContent();
@@ -53,9 +53,9 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         if (offset>0){
             limit=limit-offset;
         }
-        if(siteModelRepository.count()>1||Searching.copySiteModel.size()>1){
+        if(siteModelSearchRepository.count()>1||Searching.copySiteModel.size()>1){
             System.out.println("siteModelRepository.count()>1");
-            for(SiteModel siteModel:siteModels) {
+            for(SiteModelSearch siteModel:siteModels) {
                             for (String m:Searching.mapResponse.keySet()) {
                                 List<ObjectSearch> listResponse = new ArrayList<>(Searching.mapResponse.get(m));
                                 if (m.equals(siteModel.getName())) {
@@ -79,7 +79,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             }
         }else {
             System.out.println("siteModelRepository.count()<<<<<1");
-            for (SiteModel siteModel : siteModels) {
+            for (SiteModelSearch siteModel : siteModels) {
                 int limitToString = 1;
                 for (int j = offset; j < objectSearches.size(); j++) {
                     if (limitToString <= limit ) {

@@ -27,6 +27,14 @@ public class Searching {
     @Autowired
     private IndexRepository indexRepository;
     @Autowired
+    private SiteModelSearchRepository siteModelSearchRepository;
+    @Autowired
+    private PageSearchRepository pageSearchRepository;
+    @Autowired
+    private LemmaSearchRepository lemmaSearchRepository;
+    @Autowired
+    private IndexSearchRepository indexSearchRepository;
+    @Autowired
     private ObjectSearchRepository objectSearchRepository;
     private final SitesList sites;
     private final LemmaFinder lemmaFinder;
@@ -38,6 +46,7 @@ public class Searching {
     static public Map SideMapFromList =new HashMap<>();
     static public List <String>listForMap=new ArrayList();
     static public List <String> listOutHtml =new ArrayList();
+
     static public int limitIn;
     static public int offsetIn;
 
@@ -59,15 +68,15 @@ public class Searching {
         limitIn=limit;
         offsetIn=offset;
         LinkedList<ObjectSearch> objectSearches = new LinkedList<>();
-        LinkedList<SiteModel> siteModelList = new LinkedList<>();
+        LinkedList<SiteModelSearch> siteModelList = new LinkedList<>();
         for (int i = 0; i < sites.getSites().size(); i++) {
             Site site = sites.getSites().get(i);
             copySiteModel.add(site.getName());
             String url = site.getUrl();
             getSearches(query,url);
-            Iterable<SiteModel> siteModelRep = siteModelRepository.findAll();
+            Iterable<SiteModelSearch> siteModelRep = siteModelSearchRepository.findAll();
             Iterable<ObjectSearch> oSRep = objectSearchRepository.findAll();
-            for (SiteModel siteModel:siteModelRep){
+            for (SiteModelSearch siteModel:siteModelRep){
                 for(ObjectSearch oS :oSRep) {
                     if (oS.getRelevance()!=0) {
                         siteModelList.add(siteModel);
@@ -94,16 +103,15 @@ public class Searching {
                         + list.getTitle()+"\n"+"Print list.getSnippet() - " + list.getSnippet()+"\n");
             }
         }
-
-        siteModelRepository.deleteAll();
-        for (SiteModel siteModelL:siteModelList){
-            SiteModel siteModel = new SiteModel();
-            siteModel.setUrl(siteModelL.getUrl());
-            siteModel.setName(siteModelL.getName());
-            siteModel.setLastError(siteModelL.getLastError());
-            siteModel.setStatus(siteModelL.getStatus());
-            siteModel.setStatusTime(siteModelL.getStatusTime());
-            siteModelRepository.save(siteModel);
+        siteModelSearchRepository.deleteAll();
+        for (SiteModelSearch siteModelL:siteModelList){
+            SiteModelSearch siteModelSearch = new SiteModelSearch();
+            siteModelSearch.setUrl(siteModelL.getUrl());
+            siteModelSearch.setName(siteModelL.getName());
+            siteModelSearch.setLastError(siteModelL.getLastError());
+            siteModelSearch.setStatus(siteModelL.getStatus());
+            siteModelSearch.setStatusTime(siteModelL.getStatusTime());
+            siteModelSearchRepository.save(siteModelSearch);
         }
         objectSearchRepository.deleteAll();
         for (ObjectSearch objectSearchList : objectSearches) {
@@ -125,10 +133,10 @@ public class Searching {
     }
     public  Boolean getSearches(String query,String site){
 
-        siteModelRepository.deleteAll();
-        pageRepository.deleteAll();
+        siteModelSearchRepository.deleteAll();
+        pageSearchRepository.deleteAll();
         objectSearchRepository.deleteAll();
-        SiteModel siteModel = new SiteModel();
+        SiteModelSearch siteModel = new SiteModelSearch();
         SideMapFromList.clear();
         listForMap.clear();
         listOutHtml.clear();
@@ -160,18 +168,18 @@ public class Searching {
         siteModel.setStatus(StatusType.INDEXED);
         siteModel.setLastError(comment);
         siteModel.setStatusTime(LocalDateTime.now());
-        siteModelRepository.save(siteModel);
-        lemmaRepository.deleteAll();
-        indexRepository.deleteAll();
+        siteModelSearchRepository.save(siteModel);
+        lemmaSearchRepository.deleteAll();
+        indexSearchRepository.deleteAll();
         Map<String, Integer> lemmasSearch = new HashMap<>(lemmaFinder.collectLemmas(query));
         lemmaFinder.lemmas.clear();
         for (int j = 0; j < listForMap.size(); j++) {
-            Page page = new Page();
+            PageSearch page = new PageSearch();
                 page.setSiteId(siteModel.getId());
                 page.setCode(200);
                 page.setPath(SideMapFromList.get(j).toString());
                 page.setContent(listOutHtml.get(j));
-                pageRepository.save(page);
+                pageSearchRepository.save(page);
             TreeMap<String, Integer> unsortedMap = new TreeMap<>(lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent())));
                 Map<String, Integer> sortedMap = customComparator.valueSort(unsortedMap);
             LinkedHashMap<String, Integer> collectLemmas = new LinkedHashMap<>(sortedMap);
@@ -185,35 +193,35 @@ public class Searching {
                 }
                 /** Beginning stage №4  */
                 for (String key : collectLemmas.keySet()) {
-                    Lemma lemma = new Lemma();
-                    Index index = new Index();
+                    LemmaSearch lemma = new LemmaSearch();
+                    IndexSearch index = new IndexSearch();
                     for (String keyLemmasSearch : lemmasSearch.keySet()) {
                         if (key.equals(keyLemmasSearch)) {
                             lemma.setLemma(keyLemmasSearch);
                             lemma.setFrequency(lemmaFinder.lemmas.get(key).intValue());
                             lemma.setSiteId(page.getSiteId());
-                            lemmaRepository.save(lemma);
+                            lemmaSearchRepository.save(lemma);
                             index.setPageId(page.getId());
                             index.setLemmaId(lemma.getId());
                             index.setRank(lemma.getFrequency());
-                            indexRepository.save(index);
+                            indexSearchRepository.save(index);
                         }
                     }
                 }
                 /** Delete Lemma where  Frequency const.  */
                 for (String key : lemmasSearch.keySet()) {
-                    List<Lemma> byKeysFromLemma = lemmaRepository.findByLemma(key);
+                    List<LemmaSearch> byKeysFromLemma = lemmaSearchRepository.findByLemma(key);
                     int frequencyBefore=0;
-                    for (Lemma byKeyFromLemma :byKeysFromLemma) {
+                    for (LemmaSearch byKeyFromLemma :byKeysFromLemma) {
                         if (byKeyFromLemma.getFrequency()==frequencyBefore){
-                            lemmaRepository.deleteById(byKeyFromLemma.getId());
+                            lemmaSearchRepository.deleteById(byKeyFromLemma.getId());
                             continue;
                         }
                         /** Setting Index equals Lemma */
-                        Iterable<Index> unRemovedLemmas = indexRepository.findAll();
-                        for (Index unRemovedLemma :unRemovedLemmas) {
-                            if (!lemmaRepository.existsById(unRemovedLemma.getLemmaId())){
-                                indexRepository.delete(unRemovedLemma);
+                        Iterable<IndexSearch> unRemovedLemmas = indexSearchRepository.findAll();
+                        for (IndexSearch unRemovedLemma :unRemovedLemmas) {
+                            if (!lemmaSearchRepository.existsById(unRemovedLemma.getLemmaId())){
+                                indexSearchRepository.delete(unRemovedLemma);
                             }
                         }
                         frequencyBefore++;
@@ -221,10 +229,10 @@ public class Searching {
                 }
         }
         /** Creating and filling objectSearch */
-        Iterable<Index> byLemmaGetId = indexRepository.findAll();
-        Iterable<Page> pagesFromRep=pageRepository.findAll();
-        List<Page> pages = new ArrayList<>();
-        for(Page pageFromRep:pagesFromRep) {
+        Iterable<IndexSearch> byLemmaGetId = indexSearchRepository.findAll();
+        Iterable<PageSearch> pagesFromRep=pageSearchRepository.findAll();
+        List<PageSearch> pages = new ArrayList<>();
+        for(PageSearch pageFromRep:pagesFromRep) {
             pages.add( pageFromRep);
         }
         /** Query divide on words and writing on  list   */
@@ -235,11 +243,11 @@ public class Searching {
 
 
         /** Sort out Index and filling objectSearch (without Snippet) */
-        for (Index byLemmaId :byLemmaGetId) {
+        for (IndexSearch byLemmaId :byLemmaGetId) {
             ObjectSearch objectSearch=new ObjectSearch();
             Document doc = null;
             try {
-                doc = Jsoup.connect(site+pageRepository.findById(byLemmaId.getPageId()).get().getPath()).ignoreContentType(true).get();
+                doc = Jsoup.connect(site+pageSearchRepository.findById(byLemmaId.getPageId()).get().getPath()).ignoreContentType(true).get();
             } catch (NullPointerException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -332,8 +340,8 @@ public class Searching {
                 }
                 if(snippetText.contains("<b>") && snippetText.contains("</b>")) {
                     objectSearch.setSnippet(snippetText);
-                    objectSearch.setUri(pageRepository.findById(byLemmaId.getPageId()).get().getPath());
-                    objectSearch.setTitle(htmlCleaner(pageRepository.findById(byLemmaId.getPageId()).get().getContent()));
+                    objectSearch.setUri(pageSearchRepository.findById(byLemmaId.getPageId()).get().getPath());
+                    objectSearch.setTitle(htmlCleaner(pageSearchRepository.findById(byLemmaId.getPageId()).get().getContent()));
                     objectSearch.setRelevance(byLemmaId.getRank());
                     objectSearchRepository.save(objectSearch);
                     break;
