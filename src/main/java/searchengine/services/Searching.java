@@ -36,6 +36,8 @@ public class Searching {
     private IndexSearchRepository indexSearchRepository;
     @Autowired
     private ObjectSearchRepository objectSearchRepository;
+    @Autowired
+    private DataForSearchRepository dataForSearchRepository;
     private final SitesList sites;
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
@@ -54,6 +56,9 @@ public class Searching {
     public static String siteNameResponse;
     public static Map<String,List<ObjectSearch>> mapResponse=new HashMap<>();
     public static ArrayList<String> copySiteModel=new ArrayList<>();
+
+//    static public Map outHTMLMapForSearches =new HashMap<>();
+//    static public Map<String,List<String>> listSideMapForSearches =new HashMap<>();
 
     public Searching(SitesList sites, LemmaFinder lemmaFinder, CustomComparator customComparator,Indexing indexing,StatisticsResponseSearchService statisticsResponseSearchService) {
         this.sites = sites;
@@ -140,21 +145,35 @@ public class Searching {
         SideMapFromList.clear();
         listForMap.clear();
         listOutHtml.clear();
+
+        Iterable<DataForSearch> dataForSearches = dataForSearchRepository.findAll();
+        for (DataForSearch dataForSearch:dataForSearches){
+            if (dataForSearch.getSiteName().equals (site.substring(12))){
+                listForMap.add(dataForSearch.getSideMap());
+                listOutHtml.add(dataForSearch.getOutHTML());
+            }else if (dataForSearch.getSiteName().equals (site.substring(8))) {
+                listForMap.add(dataForSearch.getSideMap());
+                listOutHtml.add(dataForSearch.getOutHTML());
+            }
+        }
+
+
+
         /** Processing data from Indexing.*/
-         if (Indexing.listSideMapForSearches.containsKey(site.substring(12))){
-             listForMap.addAll(Indexing.listSideMapForSearches.get(site.substring(12)));
-         }else if (Indexing.listSideMapForSearches.containsKey(site.substring(8))) {
-             listForMap.addAll(Indexing.listSideMapForSearches.get(site.substring(8)));
-         }
+//         if (Indexing.listSideMapForSearches.containsKey(site.substring(12))){
+//             listForMap.addAll(Indexing.listSideMapForSearches.get(site.substring(12)));
+//         }else if (Indexing.listSideMapForSearches.containsKey(site.substring(8))) {
+//             listForMap.addAll(Indexing.listSideMapForSearches.get(site.substring(8)));
+//         }
         for(int i=0;i<listForMap.size();i++){
             SideMapFromList.put(i,listForMap.get(i));
         }
-            if (Indexing.outHTMLMapForSearches.containsKey(site.substring(12))) {
-                           listOutHtml.addAll((Collection<? extends String>) Indexing.outHTMLMapForSearches.get(site.substring(12)));
-            }
-            else if (Indexing.outHTMLMapForSearches.containsKey(site.substring(8))) {
-               listOutHtml.addAll((Collection<? extends String>) Indexing.outHTMLMapForSearches.get(site.substring(8)));
-            }
+//            if (Indexing.outHTMLMapForSearches.containsKey(site.substring(12))) {
+//                           listOutHtml.addAll((Collection<? extends String>) Indexing.outHTMLMapForSearches.get(site.substring(12)));
+//            }
+//            else if (Indexing.outHTMLMapForSearches.containsKey(site.substring(8))) {
+//               listOutHtml.addAll((Collection<? extends String>) Indexing.outHTMLMapForSearches.get(site.substring(8)));
+//            }
 
         comment = "200 Ok";
             String name="";

@@ -29,6 +29,8 @@ public class Indexing {
     private IndexRepository indexRepository;
     @Autowired
     private ObjectSearchRepository objectSearchRepository;
+    @Autowired
+    private DataForSearchRepository dataForSearchRepository;
     private final SitesList sites;
     private final LemmaFinder lemmaFinder;
     private final CustomComparator customComparator;
@@ -51,6 +53,7 @@ public class Indexing {
         this.response=response;
     }
     public  Response startIndexing(){
+        dataForSearchRepository.deleteAll();
         ControllerThread.setIsRun(true);
         ConditionStopIndexing.setIsStop(false);
         /** Run a task specified by a Runnable Object asynchronously. */
@@ -90,8 +93,19 @@ public class Indexing {
                 }else if (url.matches("https://"+"[a-zA-Z_-]*.[a-zA-Z_-]*")){
                     name=url.substring(8);
                 }
-                listSideMapForSearches.put(name,listForMap);
-                outHTMLMapForSearches.put(name,listOutHTML);
+
+                for (int j=0;j<listForMap.size();j++) {
+                    DataForSearch dataForSearch = new DataForSearch();
+
+//                listSideMapForSearches.put(name,listForMap);
+//                outHTMLMapForSearches.put(name,listOutHTML);
+
+                    dataForSearch.setSiteName(name);
+                    dataForSearch.setSideMap(listForMap.get(j));
+                    dataForSearch.setOutHTML(listOutHTML.get(j));
+                    dataForSearchRepository.save(dataForSearch);
+                }
+
                 if (ConditionStopIndexing.isAfterStop()) {
                     comment = "Индексация остановлена пользователем";
                     saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);

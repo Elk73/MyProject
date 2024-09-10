@@ -45,7 +45,8 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             limit=20;
         }
         if (limit>objectSearches.size()){
-            limit=objectSearches.size();
+//            limit=objectSearches.size();
+            limit=Searching.copySiteModel.size();
         }
         if (offset>limit){
             offset=0;
