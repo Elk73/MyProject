@@ -32,10 +32,12 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         List<TotalSearchingDto> totalSearchingDtos=new ArrayList<>();
         List<ObjectSearch> objectSearches = new ArrayList<>((Collection<? extends ObjectSearch>) objectSearchesRep);
         offset=Searching.offsetIn;
+        limit=Searching.limitIn;
         if (Searching.limitIn==0||Searching.limitIn==1){
             Searching.limitIn=20;
             try {
-            limit= (int) Math.abs(Searching.limitIn/(Searching.copySiteModel.size()));
+                limit= (int) Math.abs(Searching.limitIn/(siteModelSearchRepository.count()));
+                System.out.println(" limitMath  -  "    +limit);
         }catch(ArithmeticException e) {
             e.printStackTrace();
             return (StatisticsResponseFromSearchingDto) ResponseEntity.noContent();
@@ -45,8 +47,8 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             limit=20;
         }
         if (limit>objectSearches.size()){
-//            limit=objectSearches.size();
-            limit=Searching.copySiteModel.size();
+            limit= (int) objectSearchRepository.count();
+            System.out.println(" objectSearchRepository.count()  -  "    +limit);
         }
         if (offset>limit){
             offset=0;
@@ -56,6 +58,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
         }
         if(siteModelSearchRepository.count()>1||Searching.copySiteModel.size()>1){
             System.out.println("siteModelRepository.count()>1");
+            System.out.println("limitOver - "+limit);
             for(SiteModelSearch siteModel:siteModels) {
                             for (String m:Searching.mapResponse.keySet()) {
                                 List<ObjectSearch> listResponse = new ArrayList<>(Searching.mapResponse.get(m));
@@ -80,6 +83,7 @@ public class StatisticsResponseSearchService implements StatisticsServiceSearch 
             }
         }else {
             System.out.println("siteModelRepository.count()<<<<<1");
+            System.out.println("limitOver - "+limit);
             for (SiteModelSearch siteModel : siteModels) {
                 int limitToString = 1;
                 for (int j = offset; j < objectSearches.size(); j++) {

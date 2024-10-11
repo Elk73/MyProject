@@ -45,15 +45,26 @@ public class ApiController {
     }
     @GetMapping("/startIndexing")
     public ResponseEntity<Response> startIndexing(){
+        if(ConditionStopIndexing.isAfterStop()){
+            ControllerThread.setIsRun(false);
+        }
         return ResponseEntity.ok(indexing.startIndexing());
     }
     @GetMapping("/stopIndexing")
     public String stopIndexing(){
-        if (!ControllerThread.isIsRun()) {
-            return "'result': false,\t'error': 400 Bad Request \nИндексация не была запущена\n" ;
+        try {
+            ConditionStopIndexing.setAfterStop(true);
+            Thread.sleep(600);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         ConditionStopIndexing.setIsStop(true);
+            if (!ControllerThread.isIsRun()) {
+            return "'result': false,\t'error': 400 Bad Request \nИндексация не была запущена\n" ;
+        }
         return "'result': true";
+
+
     }
     @PostMapping("/indexPage")
     public String addUrl(String url){

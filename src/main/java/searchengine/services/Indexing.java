@@ -37,7 +37,6 @@ public class Indexing {
     private final Response response;
 
 
-
     public String url;
     public String comment;
     static public Map listSideMap=new HashMap<>();
@@ -52,7 +51,12 @@ public class Indexing {
         this.customComparator=customComparator;
         this.response=response;
     }
+
     public  Response startIndexing(){
+        if(ConditionStopIndexing.isAfterStop()){
+            return response;
+        }
+        else {
         dataForSearchRepository.deleteAll();
         ControllerThread.setIsRun(true);
         ConditionStopIndexing.setIsStop(false);
@@ -96,20 +100,17 @@ public class Indexing {
 
                 for (int j=0;j<listForMap.size();j++) {
                     DataForSearch dataForSearch = new DataForSearch();
-
-//                listSideMapForSearches.put(name,listForMap);
-//                outHTMLMapForSearches.put(name,listOutHTML);
-
                     dataForSearch.setSiteName(name);
                     dataForSearch.setSideMap(listForMap.get(j));
                     dataForSearch.setOutHTML(listOutHTML.get(j));
                     dataForSearchRepository.save(dataForSearch);
                 }
-
                 if (ConditionStopIndexing.isAfterStop()) {
                     comment = "Индексация остановлена пользователем";
                     saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
-                } else if (listSideMap.size() <= 1) {
+                }
+
+                else if (listSideMap.size() <= 1) {
                     comment = "503 Service Unavailable";
                     saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
                 } else {
@@ -117,6 +118,10 @@ public class Indexing {
                     saveSiteModelRepository(url, comment, siteModel, StatusType.INDEXING);
                 }
                 for (int j = 0; j < listSideMap.size(); j++) {
+                    if (ConditionStopIndexing.isAfterStop()) {
+                        comment = "Индексация остановлена пользователем";
+                        saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+                    }
                     Page page = new Page();
                     page.setSiteId(siteModel.getId());
                     page.setCode(200);
@@ -125,6 +130,10 @@ public class Indexing {
                     pageRepository.save(page);
                     lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
                     for (String key : lemmaFinder.lemmas.keySet()) {
+                        if (ConditionStopIndexing.isAfterStop()) {
+                            comment = "Индексация остановлена пользователем";
+                            saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+                        }
                         Lemma lemma = new Lemma();
                         Index index = new Index();
                         lemma.setLemma(String.valueOf(key));
@@ -135,7 +144,6 @@ public class Indexing {
                         index.setLemmaId(lemma.getId());
                         index.setRank(lemma.getFrequency());
                         indexRepository.save(index);
-
                     }
                 }
             }
@@ -143,7 +151,7 @@ public class Indexing {
             return response;
         });
         return response;
-
+        }
     }
     public String indexingPage(String url){
             siteModelRepository.deleteAll();
@@ -167,6 +175,10 @@ public class Indexing {
             lemmaRepository.deleteAll();
             indexRepository.deleteAll();
             for (int j = 0; j < listSideMap.size(); j++) {
+                if (ConditionStopIndexing.isAfterStop()) {
+                    comment = "Индексация остановлена пользователем";
+                    saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+                }
                 Page page = new Page();
                 page.setSiteId(siteModel.getId());
                 page.setCode(200);
@@ -175,6 +187,10 @@ public class Indexing {
                 pageRepository.save(page);
                 lemmaFinder.collectLemmas(lemmaFinder.htmlCleaner(page.getContent()));
                 for (String key : lemmaFinder.lemmas.keySet()) {
+                    if (ConditionStopIndexing.isAfterStop()) {
+                        comment = "Индексация остановлена пользователем";
+                        saveSiteModelRepository(url, comment, siteModel, StatusType.FAILED);
+                    }
                     Lemma lemma = new Lemma();
                     Index index = new Index();
                     lemma.setLemma(String.valueOf(key));

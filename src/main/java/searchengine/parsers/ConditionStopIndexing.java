@@ -10,7 +10,7 @@ public record ConditionStopIndexing() {
         ConditionStopIndexing.isStop = isStop;
     }
     public static boolean isAfterStop() {
-        return afterStop;
+        return  afterStop;
     }
 
     public static void setAfterStop(boolean afterStop) {

@@ -9,14 +9,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 public class LinkExecutor extends RecursiveTask<String> {
     private String url;
     private static String startUrl;
     public static ArrayList outHTML=new ArrayList();
 
     private static CopyOnWriteArraySet<String> allLinks = new CopyOnWriteArraySet<>();
-
     public LinkExecutor(String url) {
         this.url = url.trim();
     }
@@ -41,13 +39,18 @@ public class LinkExecutor extends RecursiveTask<String> {
         int count=0;
         Document doc;
         Elements elements;
+
         try {
             Thread.sleep(200);
-            while (ConditionStopIndexing.isIsStop()==true)
+            while (ConditionStopIndexing.isIsStop())
             {
-                ConditionStopIndexing.setIsStop(false);
-                Thread.sleep(50000);
-                ConditionStopIndexing.setAfterStop(true);
+//                ConditionStopIndexing.setAfterStop(true);
+                Thread.sleep(600);
+                if (!ControllerThread.isIsRun()){
+                    ConditionStopIndexing.setIsStop(false);
+                    ControllerThread.setIsRun(true);
+                    ConditionStopIndexing.setAfterStop(false);
+                }
             }
             doc = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
@@ -72,7 +75,6 @@ public class LinkExecutor extends RecursiveTask<String> {
                         subTask.add(linkExecutor);
                         allLinks.add(attr);
                         System.out.println("allLinks- "+allLinks);
-
                         if (count < 10) {//********
                             break;//********
                         }//********
